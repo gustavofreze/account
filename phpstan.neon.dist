@@ -1,0 +1,8 @@
+parameters:
+  paths:
+    - src
+  level: 9
+  tmpDir: report/phpstan
+  ignoreErrors:
+    - '#return type has no value type specified in iterable type array#'
+  reportUnmatchedIgnoredErrors: false
