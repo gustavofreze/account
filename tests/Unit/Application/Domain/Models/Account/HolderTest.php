@@ -5,50 +5,35 @@ declare(strict_types=1);
 namespace Account\Application\Domain\Models\Account;
 
 use Account\Application\Domain\Exceptions\InvalidDocument;
-use Account\Application\Domain\Models\Account\Documents\CNPJ;
-use Account\Application\Domain\Models\Account\Documents\CPF;
+use Account\Application\Domain\Models\Account\Documents\SimpleIdentity;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class HolderTest extends TestCase
 {
-    #[DataProvider('invalidCPFDataProvider')]
-    public function testExceptionWhenInvalidCPF(string $number): void
+    #[DataProvider('invalidSimpleIdentityDataProvider')]
+    public function testExceptionWhenInvalidSimpleIdentity(string $number): void
     {
-        /** @Given an invalid CPF number is provided */
+        /** @Given an invalid SimpleIdentity number is provided */
         /** @Then an InvalidDocument exception is thrown */
+        $template = 'The value <%s> is not a valid SimpleIdentity.';
         $this->expectException(InvalidDocument::class);
-        $this->expectExceptionMessage(sprintf('The value <%s> is not a valid CPF.', $number));
+        $this->expectExceptionMessage(sprintf($template, $number));
 
-        /** @When creating a new CPF instance with an invalid value */
-        new CPF(number: $number);
+        /** @When creating a new SimpleIdentity instance with an invalid value */
+        SimpleIdentity::from(number: $number);
     }
 
-    #[DataProvider('invalidCNPJDataProvider')]
-    public function testExceptionWhenInvalidCNPJ(string $number): void
-    {
-        /** @Given an invalid CNPJ number is provided */
-        /** @Then an InvalidDocument exception is thrown */
-        $this->expectException(InvalidDocument::class);
-        $this->expectExceptionMessage(sprintf('The value <%s> is not a valid CNPJ.', $number));
-
-        /** @When creating a new CNPJ instance with an invalid value */
-        new CNPJ(number: $number);
-    }
-
-    public static function invalidCPFDataProvider(): array
+    public static function invalidSimpleIdentityDataProvider(): array
     {
         return [
-            'Empty CPF'          => ['number' => ''],
-            'CPF with 10 digits' => ['number' => '1234567890']
-        ];
-    }
-
-    public static function invalidCNPJDataProvider(): array
-    {
-        return [
-            'Empty CNPJ'          => ['number' => ''],
-            'CNPJ with 13 digits' => ['number' => '1234567890123']
+            'Too short'             => ['number' => '123'],
+            'Empty string'          => ['number' => ''],
+            'Only whitespace'       => ['number' => '           '],
+            'Contains spaces'       => ['number' => '123 456 7890'],
+            'Mixed alphanumeric'    => ['number' => '12345abcde'],
+            'Special characters'    => ['number' => '1234!@#$%^'],
+            'Alphabetic characters' => ['number' => 'abcdefghijk']
         ];
     }
 }

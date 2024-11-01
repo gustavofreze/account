@@ -4,5 +4,6 @@ parameters:
   level: 9
   tmpDir: report/phpstan
   ignoreErrors:
-    - '#return type has no value type specified in iterable type array#'
+    - '#TinyBlocks#'
+    - '#in iterable type array#'
   reportUnmatchedIgnoredErrors: false

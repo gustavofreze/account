@@ -4,61 +4,26 @@ declare(strict_types=1);
 
 namespace Account\Application\Domain\Models\Account;
 
-use Account\Application\Domain\Exceptions\InsufficientFunds;
-use Account\Application\Domain\Exceptions\InvalidTransaction;
 use Account\Application\Domain\Models\Transaction\Amounts\Amount;
-use Account\Application\Domain\Models\Transaction\Amounts\Decimal;
-use Account\Application\Domain\Models\Transaction\Operations\CreditVoucher;
-use Account\Application\Domain\Models\Transaction\Operations\NormalPurchase;
-use Account\Application\Domain\Models\Transaction\Operations\PurchaseWithInstallments;
-use Account\Application\Domain\Models\Transaction\Operations\Withdrawal;
-use Account\Application\Domain\Models\Transaction\Transaction;
-use Account\Application\Domain\Models\Transaction\Transactions;
+use Account\Application\Domain\Models\Transaction\Amounts\PositiveOrZeroAmount;
+use TinyBlocks\Math\BigDecimal;
 
 final readonly class Balance
 {
-    private function __construct(public Decimal $amount, public Transactions $transactions)
+    private function __construct(public PositiveOrZeroAmount $amount)
     {
     }
 
-    public static function initialize(): Balance
+    public static function from(float $value): Balance
     {
-        return new Balance(amount: Decimal::fromZero(), transactions: Transactions::createFromEmpty());
+        return new Balance(amount: PositiveOrZeroAmount::from(value: $value));
     }
 
-    public function apply(Transaction $transaction): Balance
+    public function hasSufficientFunds(Amount $amount): bool
     {
-        $amount = $transaction->getAmount();
-        $transactionType = $transaction::class;
-
-        $balance = match ($transactionType) {
-            CreditVoucher::class            => $this->credit(amount: $amount),
-            NormalPurchase::class, Withdrawal::class,
-            PurchaseWithInstallments::class => $this->debit(amount: $amount),
-            default                         => throw new InvalidTransaction($transactionType)
-        };
-
-        $updatedTransactions = $this->transactions->add(elements: $transaction);
-
-        return new Balance(amount: $balance, transactions: $updatedTransactions);
-    }
-
-    private function credit(Amount $amount): Decimal
-    {
-        $updatedAmount = $this->amount->add(addend: $amount);
-
-        return Decimal::fromAmount(value: $updatedAmount);
-    }
-
-    private function debit(Amount $amount): Decimal
-    {
-        $debitAmount = Decimal::fromAmount(value: $amount);
+        $debitAmount = BigDecimal::fromFloat(value: $amount->toFloat(), scale: $amount::SCALE);
         $updatedAmount = $this->amount->subtract(subtrahend: $debitAmount->absolute());
 
-        if ($updatedAmount->isNegative()) {
-            throw new InsufficientFunds();
-        }
-
-        return Decimal::fromAmount(value: $updatedAmount);
+        return $updatedAmount->isPositive();
     }
 }

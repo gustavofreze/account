@@ -15,6 +15,7 @@
         </include>
         <exclude>
             <file>src/Routes.php</file>
+            <file>src/Environment.php</file>
             <file>src/Dependencies.php</file>
         </exclude>
     </source>
@@ -22,6 +23,9 @@
     <testsuites>
         <testsuite name="unit">
             <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
 
@@ -36,5 +40,13 @@
     <logging>
         <junit outputFile="report/execution-result.xml"/>
     </logging>
+
+    <php>
+        <env name="DATABASE_HOST" value="account-adm"/>
+        <env name="DATABASE_PORT" value="3306"/>
+        <env name="DATABASE_NAME" value="account_adm_test"/>
+        <env name="DATABASE_USER" value="root"/>
+        <env name="DATABASE_PASSWORD" value="root"/>
+    </php>
 
 </phpunit>

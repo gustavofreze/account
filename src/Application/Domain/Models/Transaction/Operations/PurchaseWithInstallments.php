@@ -10,12 +10,16 @@ use Account\Application\Domain\Models\Transaction\TransactionId;
 
 final readonly class PurchaseWithInstallments implements Transaction
 {
+    private const MINIMUM_INSTALLMENTS = 1;
+
     private function __construct(private TransactionId $id, private NegativeAmount $amount, private int $installments)
     {
     }
 
-    public static function createFrom(NegativeAmount $amount, int $installments = 1): PurchaseWithInstallments
-    {
+    public static function createFrom(
+        NegativeAmount $amount,
+        int $installments = self::MINIMUM_INSTALLMENTS
+    ): PurchaseWithInstallments {
         return new PurchaseWithInstallments(
             id: TransactionId::generate(),
             amount: $amount,

@@ -4,47 +4,43 @@ declare(strict_types=1);
 
 namespace Account\Application\Domain\Models\Account;
 
+use Account\Application\Domain\Exceptions\InsufficientFunds;
 use Account\Application\Domain\Models\Transaction\Transaction;
+use Account\Application\Domain\Models\Transaction\Transactions;
 
-final readonly class Account
+final class Account
 {
-    private function __construct(public AccountId $id, public Holder $holder, public Balance $balance)
+    public Transactions $transactions;
+
+    public function __construct(public AccountId $id, public Holder $holder)
     {
+        $this->transactions = Transactions::createFromEmpty();
     }
 
-    public static function createFrom(Holder $holder): Account
+    public static function openFrom(AccountId $id, Holder $holder): Account
     {
-        return new Account(
-            id: AccountId::generate(),
-            holder: $holder,
-            balance: Balance::initialize()
-        );
+        return new Account(id: $id, holder: $holder);
     }
 
     public function credit(Transaction $transaction): Account
     {
-        $updatedBalance = $this->balance->apply(transaction: $transaction);
+        $this->transactions->add(elements: $transaction);
 
-        return new Account(
-            id: $this->id,
-            holder: $this->holder,
-            balance: $updatedBalance
-        );
+        return $this;
     }
 
-    public function debit(Transaction $transaction): Account
+    public function debit(Balance $balance, Transaction $transaction): Account
     {
-        $updatedBalance = $this->balance->apply(transaction: $transaction);
+        if ($balance->hasSufficientFunds(amount: $transaction->getAmount())) {
+            $this->transactions->add(elements: $transaction);
+            return $this;
+        }
 
-        return new Account(
-            id: $this->id,
-            holder: $this->holder,
-            balance: $updatedBalance
-        );
+        throw new InsufficientFunds(accountId: $this->id);
     }
 
-    public function withdraw(Transaction $transaction): Account
+    public function withdraw(Balance $balance, Transaction $transaction): Account
     {
-        return $this->debit(transaction: $transaction);
+        return $this->debit(balance: $balance, transaction: $transaction);
     }
 }

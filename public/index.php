@@ -13,6 +13,6 @@ $containerBuilder->addDefinitions(Dependencies::definitions());
 $app = Bridge::create($containerBuilder->build());
 
 $routes = new Routes(app: $app);
-$routes->build();
+$routes->register();
 
 $app->run();

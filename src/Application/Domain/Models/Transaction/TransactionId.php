@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Account\Application\Domain\Models\Transaction;
 
-use TinyBlocks\Ksuid\Ksuid;
+use Ramsey\Uuid\Uuid;
 
 final readonly class TransactionId
 {
@@ -14,7 +14,7 @@ final readonly class TransactionId
 
     public static function generate(): TransactionId
     {
-        return new TransactionId(value: Ksuid::random()->getValue());
+        return new TransactionId(value: Uuid::uuid4()->toString());
     }
 
     public function toString(): string
