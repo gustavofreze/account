@@ -109,7 +109,7 @@ make show-reports
 
 <div id='environment_setup'></div> 
 
-## Environment Setup
+## Environment setup
 
 ### Access URLs
 

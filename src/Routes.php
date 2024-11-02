@@ -16,6 +16,7 @@ use Psr\Container\ContainerInterface;
 use Slim\App;
 use Slim\Handlers\Strategies\RequestResponseArgs;
 use Slim\Interfaces\RouteCollectorProxyInterface;
+use TinyBlocks\Http\HttpCode;
 
 final readonly class Routes
 {
@@ -33,6 +34,12 @@ final readonly class Routes
 
     public function register(): void
     {
+        $this->app->any('/', function ($request, $response) {
+            return $response
+                ->withHeader('Location', Environment::get(variable: 'SOURCE'))
+                ->withStatus(HttpCode::FOUND);
+        });
+
         $this->app->group('/accounts', function (RouteCollectorProxyInterface $route) {
             $errorHandling = new ErrorHandling(exceptionHandler: new OpenAccountExceptionHandler());
             $queryErrorHandling = new QueryErrorHandling(exceptionHandler: new QueryAccountExceptionHandler());
