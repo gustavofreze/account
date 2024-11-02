@@ -1,0 +1,13 @@
+.idea
+*.lock
+.github
+.phpunit.*
+.gitignore
+
+docs
+vendor
+report
+
+LICENSE
+Makefile
+README.md
