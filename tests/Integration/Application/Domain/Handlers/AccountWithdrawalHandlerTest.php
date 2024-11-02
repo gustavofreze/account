@@ -71,6 +71,52 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
         self::assertSame(50.00, $balance->amount->toFloat());
     }
 
+    public function testConcurrentWithdrawals(): void
+    {
+        /** @Given an account is created with a holder */
+        $account = Account::openFrom(
+            id: AccountId::generate(),
+            holder: Holder::from(document: SimpleIdentity::from(number: '82132928045'))
+        );
+
+        /** @And the account has an initial balance */
+        $this->accounts->save(account: $account);
+
+        /** @And a credit transaction of 100.00 is applied */
+        $account = $account->credit(
+            transaction: CreditVoucher::createFrom(amount: PositiveAmount::from(value: 100.00))
+        );
+
+        /** @And the transaction is recorded */
+        $this->accounts->applyTransactionTo(account: $account);
+
+        /** @And a first withdrawal command for 60.00 is created */
+        $firstCommand = new RequestWithdrawal(
+            id: $account->id,
+            transaction: Withdrawal::createFrom(amount: NegativeAmount::from(value: -60.00))
+        );
+
+        /** @When the first withdrawal command is processed */
+        $this->handler->handle(command: $firstCommand);
+
+        /** @Then the account balance should reflect the first withdrawal */
+        $balanceAfterFirstWithdrawal = $this->accounts->balanceOf(id: $account->id);
+
+        self::assertSame(40.00, $balanceAfterFirstWithdrawal->amount->toFloat());
+
+        /** @And a second withdrawal command for 50.00 is created */
+        $secondCommand = new RequestWithdrawal(
+            id: $account->id,
+            transaction: Withdrawal::createFrom(amount: NegativeAmount::from(value: -50.00))
+        );
+
+        /** @Then an InsufficientFunds exception is expected when processing the second withdrawal */
+        $this->expectException(InsufficientFunds::class);
+
+        /** @When the second withdrawal command is processed */
+        $this->handler->handle(command: $secondCommand);
+    }
+
     public function testExceptionWhenAccountNotFound(): void
     {
         /** @Given a new account is created but not saved */

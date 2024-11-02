@@ -36,8 +36,8 @@ final readonly class Routes
     {
         $this->app->any('/', function ($request, $response) {
             return $response
-                ->withHeader('Location', Environment::get(variable: 'SOURCE'))
-                ->withStatus(HttpCode::FOUND);
+                ->withHeader('Location', Environment::get(variable: 'SOURCE')->toString())
+                ->withStatus(HttpCode::FOUND->value);
         });
 
         $this->app->group('/accounts', function (RouteCollectorProxyInterface $route) {

@@ -1,12 +1,16 @@
-PWD := $(shell pwd -L)
+ifeq ($(OS),Windows_NT)
+    PWD := $(shell pwd -L)
+else
+    PWD := $(shell pwd -L)
+endif
 
 PHP_IMAGE = gustavofreze/php:8.2
 FLYWAY_IMAGE = flyway/flyway:10.20.1
 
-APP_RUN = docker run -u root --rm -it --network=host -v ${PWD}:/app -w /app ${PHP_IMAGE}
-APP_TEST_RUN = docker run -u root --rm -it --name account-test --link account-adm --network=account_default -v ${PWD}:/app -w /app ${PHP_IMAGE}
+APP_RUN = docker run -u root --rm -it --network=host -v "$${PWD}:/app" -w /app ${PHP_IMAGE}
+APP_TEST_RUN = docker run -u root --rm -it --name account-test --link account-adm --network=account_default -v "$${PWD}:/app" -w /app ${PHP_IMAGE}
 
-FLYWAY_RUN = docker run --rm -v ${PWD}/config/database/mysql/migrations:/flyway/sql --env-file=config/local.env --network=account_default ${FLYWAY_IMAGE}
+FLYWAY_RUN = docker run --rm -v "$${PWD}/config/database/mysql/migrations:/flyway/sql" --env-file=config/local.env --network=account_default ${FLYWAY_IMAGE}
 MIGRATE_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm -connectRetries=15
 MIGRATE_TEST_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm_test -connectRetries=15
 
@@ -40,7 +44,7 @@ migrate-database: ## Run database migrations
 clean-database: ## Clean database
 	@${MIGRATE_DB} clean
 
-migrate-test-database:
+migrate-test-database: ## Run test database migrations
 	@${MIGRATE_TEST_DB} migrate
 
 help: ## Display this help message
