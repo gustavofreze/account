@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Account\Driver\Http\Middlewares;
 
 use Account\Driver\Http\Endpoints\ExceptionHandler;

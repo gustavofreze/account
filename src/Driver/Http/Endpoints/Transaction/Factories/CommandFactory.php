@@ -20,10 +20,10 @@ final readonly class CommandFactory
 
     public function build(): Command
     {
-        $amount = (float)$this->payload['amount'];
-        $accountId = new AccountId(value: (string)$this->payload['accountId']);
+        $amount = $this->payload['amount'];
+        $accountId = new AccountId(value: $this->payload['account_id']);
 
-        $operationTypeId = (int)$this->payload['operationTypeId'];
+        $operationTypeId = $this->payload['operation_type_id'];
         $operationType = OperationType::tryFrom(value: $operationTypeId);
 
         $template = 'Unsupported operation type id <%s>.';

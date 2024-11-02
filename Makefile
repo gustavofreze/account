@@ -1,16 +1,17 @@
 PWD := $(shell pwd -L)
 
-PHP_IMAGE := gustavofreze/php:8.2
-APP_RUN := docker run -u root --rm -it --network=host -v ${PWD}:/app -w /app ${PHP_IMAGE}
-APP_TEST_RUN := docker run -u root --rm -it --name account-test --link account-adm --network=account_default -v ${PWD}:/app -w /app ${PHP_IMAGE}
+PHP_IMAGE = gustavofreze/php:8.2
+FLYWAY_IMAGE = flyway/flyway:10.20.1
 
-FLYWAY_IMAGE := flyway/flyway:10.20.1
-FLYWAY_RUN := docker run --rm -v ${PWD}/db/mysql/migrations:/flyway/sql --env-file=config/local.env --link account-adm --network=account_default ${FLYWAY_IMAGE}
-MIGRATE_DB := ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm
-MIGRATE_TEST_DB := ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm_test
+APP_RUN = docker run -u root --rm -it --network=host -v ${PWD}:/app -w /app ${PHP_IMAGE}
+APP_TEST_RUN = docker run -u root --rm -it --name account-test --link account-adm --network=account_default -v ${PWD}:/app -w /app ${PHP_IMAGE}
+
+FLYWAY_RUN = docker run --rm -v ${PWD}/config/database/mysql/migrations:/flyway/sql --env-file=config/local.env --network=account_default ${FLYWAY_IMAGE}
+MIGRATE_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm -connectRetries=15
+MIGRATE_TEST_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm_test -connectRetries=15
 
 .DEFAULT_GOAL := help
-.PHONY: start configure migrate-database clean-database migrate-test-database test unit-test integration-test review fix-style show-reports help
+.PHONY: start configure migrate-database clean-database migrate-test-database test test-no-coverage review fix-style show-reports help
 
 start: ## Start Docker compose services
 	@docker-compose up -d --build
@@ -18,14 +19,11 @@ start: ## Start Docker compose services
 configure: ## Configure development environment
 	@${APP_RUN} composer update --optimize-autoloader
 
-test: migrate-test-database ## Run all tests
+test: migrate-test-database ## Run all tests with coverage
 	@${APP_TEST_RUN} composer run tests
 
-unit-test: ## Run unit tests
-	@${APP_RUN} composer run unit-test
-
-integration-test: migrate-test-database ## Run integration tests
-	@${APP_TEST_RUN} composer run integration-test
+test-no-coverage: migrate-test-database ## Run all tests without coverage
+	@${APP_TEST_RUN} composer run tests-no-coverage
 
 review: ## Run code review
 	@${APP_RUN} composer review
@@ -42,8 +40,7 @@ migrate-database: ## Run database migrations
 clean-database: ## Clean database
 	@${MIGRATE_DB} clean
 
-migrate-test-database: ## Run test database migrations
-	@${MIGRATE_TEST_DB} clean
+migrate-test-database:
 	@${MIGRATE_TEST_DB} migrate
 
 help: ## Display this help message
@@ -53,7 +50,7 @@ help: ## Display this help message
 	@grep -E '^(start|configure|migrate-database|clean-database):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Testing"
-	@grep -E '^(test|unit-test|integration-test|migrate-test-database):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^(test|test-no-coverage):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Code review"
 	@grep -E '^(review|fix-style):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

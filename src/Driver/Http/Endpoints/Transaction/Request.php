@@ -33,12 +33,12 @@ final class Request
             $operationTypeIdValidator = Validator::intType()->positive()->setTemplate('Must be positive.');
 
             $payloadValidator = Validator::key('amount', $amountValidator)
-                ->key('accountId', $accountIdValidator)
-                ->key('operationTypeId', $operationTypeIdValidator);
+                ->key('account_id', $accountIdValidator)
+                ->key('operation_type_id', $operationTypeIdValidator);
 
             $payloadValidator->assert($this->payload);
         } catch (NestedValidationException $exception) {
-            throw new InvalidRequest(errors: $exception->getMessages());
+            throw new InvalidRequest(messages: $exception->getMessages());
         }
     }
 }

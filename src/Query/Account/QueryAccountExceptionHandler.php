@@ -18,7 +18,7 @@ final readonly class QueryAccountExceptionHandler implements ExceptionHandler
 
         return match (get_class($exception)) {
             InvalidRequest::class,  => HttpResponse::unprocessableEntity(data: [
-                'error' => $exception->getErrors()
+                'error' => $exception->getMessages()
             ]),
             AccountNotFound::class, => HttpResponse::notFound(data: $error),
             default                 => HttpResponse::internalServerError(data: $error)

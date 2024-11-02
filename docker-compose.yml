@@ -22,8 +22,7 @@ services:
       MYSQL_ROOT_PASSWORD: "root"
     command: --default-authentication-plugin=caching_sha2_password
     volumes:
-      - ./db/mysql/config:/scripts/config
-      - ./db/mysql/config/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./config/database/mysql:/scripts/config
 
   nginx:
     image: nginx:1.27-alpine

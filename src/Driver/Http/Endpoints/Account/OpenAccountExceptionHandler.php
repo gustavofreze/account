@@ -18,9 +18,9 @@ final readonly class OpenAccountExceptionHandler implements ExceptionHandler
         $error = ['error' => $exception->getMessage()];
 
         return match (get_class($exception)) {
-            InvalidRequest::class,       => HttpResponse::unprocessableEntity(data: [
-                'error' => $exception->getErrors()
-            ]),
+            InvalidRequest::class,       => HttpResponse::unprocessableEntity(
+                data: ['error' => $exception->getMessages()]
+            ),
             AccountAlreadyExists::class, => HttpResponse::conflict(data: $error),
             default                      => HttpResponse::internalServerError(data: $error)
         };

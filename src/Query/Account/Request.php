@@ -32,7 +32,7 @@ final class Request
 
             /** @var Route<ContainerInterface> $route */
             $route = $this->request->getAttribute('__route__');
-            $accountId = (string)$route->getArgument('accountId');
+            $accountId = $route->getArgument('accountId');
 
             $uuidValidator = Validator::uuid()
                 ->setName('accountId')
@@ -42,7 +42,7 @@ final class Request
 
             $this->accountId = $accountId;
         } catch (NestedValidationException $exception) {
-            throw new InvalidRequest(errors: $exception->getMessages());
+            throw new InvalidRequest(messages: $exception->getMessages());
         }
     }
 }

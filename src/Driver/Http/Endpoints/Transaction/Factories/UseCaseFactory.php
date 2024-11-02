@@ -11,7 +11,6 @@ use Account\Application\Domain\Commands\RequestWithdrawal;
 use Account\Application\Domain\Ports\Inbound\AccountCrediting;
 use Account\Application\Domain\Ports\Inbound\AccountDebiting;
 use Account\Application\Domain\Ports\Inbound\AccountWithdrawal;
-use InvalidArgumentException;
 
 final readonly class UseCaseFactory
 {
@@ -24,15 +23,10 @@ final readonly class UseCaseFactory
 
     public function handle(Command $command): void
     {
-        $template = 'Unsupported command <%s>.';
-
         match (get_class($command)) {
             DebitAccount::class      => $this->accountDebiting->handle(command: $command),
             CreditAccount::class     => $this->accountCrediting->handle(command: $command),
-            RequestWithdrawal::class => $this->accountWithdrawal->handle(command: $command),
-            default                  => throw new InvalidArgumentException(
-                message: sprintf($template, get_class($command))
-            )
+            RequestWithdrawal::class => $this->accountWithdrawal->handle(command: $command)
         };
     }
 }

@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection PhpUnhandledExceptionInspection */
-
 declare(strict_types=1);
 
 namespace Test\Integration;
@@ -23,16 +21,10 @@ abstract class IntegrationTestCase extends TestCase
         self::$connection = self::$container->get(Connection::class);
     }
 
-    protected function setUp(): void
-    {
-        self::$connection->beginTransaction();
-        self::$connection->executeQuery('SAVEPOINT test_savepoint');
-    }
-
     protected function tearDown(): void
     {
-        self::$connection->executeQuery('ROLLBACK TO SAVEPOINT test_savepoint');
-        self::$connection->commit();
+        self::$connection->executeStatement('DELETE FROM transactions');
+        self::$connection->executeStatement('DELETE FROM accounts');
     }
 
     public function get(string $class): mixed

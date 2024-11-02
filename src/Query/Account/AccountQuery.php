@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Account\Query\Account;
 
-use Account\Query\Account\Dtos\Account;
+use Account\Query\Account\Database\Records\Account;
 
 interface AccountQuery
 {

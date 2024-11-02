@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Account;
 
 use Account\Driver\Http\Endpoints\Account\OpenAccount;
@@ -32,18 +34,17 @@ final readonly class Routes
     public function register(): void
     {
         $this->app->group('/accounts', function (RouteCollectorProxyInterface $route) {
-            $route->get('/{accountId}', FindAccountById::class)->addMiddleware(
-                new QueryErrorHandling(exceptionHandler: new QueryAccountExceptionHandler())
-            );
-            $route->post('', OpenAccount::class)->addMiddleware(
-                new ErrorHandling(exceptionHandler: new OpenAccountExceptionHandler())
-            );
+            $errorHandling = new ErrorHandling(exceptionHandler: new OpenAccountExceptionHandler());
+            $queryErrorHandling = new QueryErrorHandling(exceptionHandler: new QueryAccountExceptionHandler());
+
+            $route->get('/{accountId}', FindAccountById::class)->addMiddleware($queryErrorHandling);
+            $route->post('', OpenAccount::class)->addMiddleware($errorHandling);
         });
 
         $this->app->group('/transactions', function (RouteCollectorProxyInterface $route) {
-            $route->post('', CreateTransaction::class)->addMiddleware(
-                new ErrorHandling(exceptionHandler: new CreateTransactionExceptionHandler())
-            );
+            $errorHandling = new ErrorHandling(exceptionHandler: new CreateTransactionExceptionHandler());
+
+            $route->post('', CreateTransaction::class)->addMiddleware($errorHandling);
         });
     }
 }

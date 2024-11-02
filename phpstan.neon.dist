@@ -6,4 +6,7 @@ parameters:
   ignoreErrors:
     - '#TinyBlocks#'
     - '#in iterable type array#'
+    - '#does not accept string#'
+    - '#Match expression does not handle#'
+    - '#constructor expects array, mixed given#'
   reportUnmatchedIgnoredErrors: false

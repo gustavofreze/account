@@ -11,6 +11,8 @@ use Account\Application\Domain\Models\Account\Holder;
 use Account\Application\Domain\Models\Transaction\Transaction;
 use Account\Application\Domain\Ports\Outbound\Accounts;
 use Account\Driven\Account\OperationType;
+use Account\Driven\Account\Repository\Records\AccountRecord;
+use Account\Driven\Account\Repository\Records\BalanceRecord;
 use Account\Driven\Shared\Database\RelationalConnection;
 
 final readonly class Adapter implements Accounts
@@ -38,9 +40,9 @@ final readonly class Adapter implements Accounts
             ->query(sql: Queries::FIND_BY_ID)
             ->bind(data: [':id' => $id->toString()])
             ->execute()
-            ->fetchOne();
+            ->fetchOneOrNull();
 
-        return Record::from(result: $result)->toAccountOrNull();
+        return AccountRecord::from(result: $result)->toAccountOrNull();
     }
 
     public function findByHolder(Holder $holder): ?Account
@@ -50,9 +52,9 @@ final readonly class Adapter implements Accounts
             ->query(sql: Queries::FIND_BY_HOLDER)
             ->bind(data: [':holderDocumentNumber' => $holder->document->getNumber()])
             ->execute()
-            ->fetchOne();
+            ->fetchOneOrNull();
 
-        return Record::from(result: $result)->toAccountOrNull();
+        return AccountRecord::from(result: $result)->toAccountOrNull();
     }
 
     public function balanceOf(AccountId $id): Balance
@@ -64,7 +66,7 @@ final readonly class Adapter implements Accounts
             ->execute()
             ->fetchOne();
 
-        return Record::from(result: $result)->toBalance();
+        return BalanceRecord::from(result: $result)->toBalance();
     }
 
     public function applyTransactionTo(Account $account): void

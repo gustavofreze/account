@@ -1,13 +1,11 @@
 <?php
 
-/** @noinspection PhpUnhandledExceptionInspection */
-
 declare(strict_types=1);
 
 namespace Account\Query\Account\Database;
 
 use Account\Query\Account\AccountQuery;
-use Account\Query\Account\Dtos\Account;
+use Account\Query\Account\Database\Records\Account;
 use Doctrine\DBAL\Connection;
 
 final readonly class Facade implements AccountQuery
@@ -16,6 +14,7 @@ final readonly class Facade implements AccountQuery
     {
     }
 
+    /** @noinspection PhpUnhandledExceptionInspection */
     public function findAccountById(string $id): ?Account
     {
         $result = $this->connection

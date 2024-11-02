@@ -15,10 +15,10 @@ use InvalidArgumentException;
 
 enum OperationType: int
 {
-    case WITHDRAWAL = 4;
-    case CREDIT_VOUCHER = 1;
-    case NORMAL_PURCHASE = 2;
-    case PURCHASE_WITH_INSTALLMENTS = 3;
+    case WITHDRAWAL = 3;
+    case CREDIT_VOUCHER = 4;
+    case NORMAL_PURCHASE = 1;
+    case PURCHASE_WITH_INSTALLMENTS = 2;
 
     public static function fromTransaction(Transaction $transaction): OperationType
     {

@@ -18,7 +18,7 @@ RUN apk --no-cache add curl mysql-client openjdk21-jre tar \
 
 WORKDIR /var/www/html
 
-COPY ./db /db
+COPY ./config/database /database
 COPY ./entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh

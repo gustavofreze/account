@@ -24,7 +24,7 @@ final readonly class CreateTransaction implements RequestHandlerInterface
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $payload = (array)json_decode($request->getBody()->__toString(), true);
+        $payload = json_decode($request->getBody()->__toString(), true);
         $request = new Request(payload: $payload);
         $command = $request->toCommand();
 

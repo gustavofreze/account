@@ -14,6 +14,8 @@ use Respect\Validation\Validator;
 
 final readonly class Request
 {
+    private const MINIMUM_DOCUMENT_LENGTH = 11;
+
     public function __construct(private array $payload)
     {
         $this->validate();
@@ -21,8 +23,8 @@ final readonly class Request
 
     public function toCommand(): OpenAccount
     {
-        $holder = (array)$this->payload['holder'];
-        $document = SimpleIdentity::from(number: (string)$holder['document']);
+        $holder = $this->payload['holder'];
+        $document = SimpleIdentity::from(number: $holder['document']);
 
         return new OpenAccount(id: AccountId::generate(), holder: Holder::from(document: $document));
     }
@@ -30,12 +32,12 @@ final readonly class Request
     private function validate(): void
     {
         try {
-            $documentValidator = Validator::stringType()->digit()->length(11);
+            $documentValidator = Validator::stringType()->digit()->length(self::MINIMUM_DOCUMENT_LENGTH);
             $holderValidator = Validator::key('document', $documentValidator);
             $payloadValidator = Validator::key('holder', $holderValidator);
             $payloadValidator->assert($this->payload);
         } catch (NestedValidationException $exception) {
-            throw new InvalidRequest(errors: $exception->getMessages());
+            throw new InvalidRequest(messages: $exception->getMessages());
         }
     }
 }

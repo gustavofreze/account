@@ -32,7 +32,14 @@ interface QueryBuilder
     /**
      * Fetch a single row from the result set.
      *
+     * @return array The first row from the result set.
+     */
+    public function fetchOne(): array;
+
+    /**
+     * Fetch a single row from the result set or null if no result is found.
+     *
      * @return array|null The first row from the result set, or null if no rows are found.
      */
-    public function fetchOne(): ?array;
+    public function fetchOneOrNull(): ?array;
 }

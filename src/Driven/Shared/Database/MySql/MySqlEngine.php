@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection PhpUnhandledExceptionInspection */
-
 declare(strict_types=1);
 
 namespace Account\Driven\Shared\Database\MySql;
@@ -26,6 +24,7 @@ final class MySqlEngine implements RelationalConnection
         return $this->queryBuilder;
     }
 
+    /** @noinspection PhpUnhandledExceptionInspection */
     public function inTransaction(Closure $useCase): void
     {
         try {

@@ -1,5 +1,5 @@
 #!/bin/bash
 
-flyway -connectRetries=60 migrate
+flyway -connectRetries=15 migrate
 
 php-fpm -F

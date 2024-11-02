@@ -8,13 +8,12 @@ use InvalidArgumentException;
 
 final class InvalidRequest extends InvalidArgumentException
 {
-    public function __construct(private readonly array $errors)
+    public function __construct(private readonly array $messages)
     {
-        parent::__construct();
     }
 
-    public function getErrors(): array
+    public function getMessages(): array
     {
-        return $this->errors;
+        return $this->messages;
     }
 }
