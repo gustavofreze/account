@@ -309,3 +309,9 @@
         "error": "An internal server error occurred."
     }
     ```
+
+<br>
+
+> Requests are available for import into
+`Postman`.
+> [Get the collection here](/docs/Account.postman_collection.json).
