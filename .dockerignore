@@ -5,7 +5,6 @@
 .gitignore
 
 docs
-vendor
 report
 
 LICENSE
