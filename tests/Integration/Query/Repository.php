@@ -13,7 +13,6 @@ final readonly class Repository
     {
     }
 
-    /** @noinspection PhpUnhandledExceptionInspection */
     public function save(Account $account): void
     {
         $query = 'INSERT INTO accounts (id, holder_document_number) VALUES (UUID_TO_BIN(:id), :holderDocumentNumber)';

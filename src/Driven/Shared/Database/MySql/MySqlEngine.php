@@ -24,7 +24,6 @@ final class MySqlEngine implements RelationalConnection
         return $this->queryBuilder;
     }
 
-    /** @noinspection PhpUnhandledExceptionInspection */
     public function inTransaction(Closure $useCase): void
     {
         try {

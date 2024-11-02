@@ -11,7 +11,6 @@ use PHPUnit\Framework\TestCase;
 
 final class RelationalConnectionTest extends TestCase
 {
-    /** @noinspection PhpUnhandledExceptionInspection */
     public function testTransactionCommitOnSuccess(): void
     {
         /** @Given a database connection is available */
@@ -42,7 +41,6 @@ final class RelationalConnectionTest extends TestCase
         self::assertTrue($commitCalled);
     }
 
-    /** @noinspection PhpUnhandledExceptionInspection */
     public function testTransactionRollbackOnFailure(): void
     {
         /** @Given a database connection is available */

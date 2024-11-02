@@ -10,7 +10,6 @@ use PHPUnit\Framework\TestCase;
 
 final class OperationTypeTest extends TestCase
 {
-    /** @noinspection PhpUnhandledExceptionInspection */
     public function testExceptionWhenUnsupportedTransactionType(): void
     {
         /** @Given an unsupported transaction type */

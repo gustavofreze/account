@@ -69,6 +69,12 @@ To start the application containers, run:
 make start
 ```
 
+To stop the application containers, run:
+
+```bash
+make stop
+```
+
 <div id='tests'></div> 
 
 ### Tests

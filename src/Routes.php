@@ -34,11 +34,9 @@ final readonly class Routes
 
     public function register(): void
     {
-        $this->app->any('/', function ($request, $response) {
-            return $response
-                ->withHeader('Location', Environment::get(variable: 'SOURCE')->toString())
-                ->withStatus(HttpCode::FOUND->value);
-        });
+        $this->app->any('/', fn($request, $response) => $response
+            ->withHeader('Location', Environment::get(variable: 'SOURCE')->toString())
+            ->withStatus(HttpCode::FOUND->value));
 
         $this->app->group('/accounts', function (RouteCollectorProxyInterface $route) {
             $errorHandling = new ErrorHandling(exceptionHandler: new OpenAccountExceptionHandler());

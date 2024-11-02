@@ -19,7 +19,6 @@ final class MySqlQueryBuilder implements QueryBuilder
     {
     }
 
-    /** @noinspection PhpUnhandledExceptionInspection */
     public function bind(array $data): MySqlQueryBuilder
     {
         foreach ($data as $column => $value) {
@@ -29,14 +28,12 @@ final class MySqlQueryBuilder implements QueryBuilder
         return $this;
     }
 
-    /** @noinspection PhpUnhandledExceptionInspection */
     public function query(string $sql): MySqlQueryBuilder
     {
         $this->statement = $this->connection->prepare($sql);
         return $this;
     }
 
-    /** @noinspection PhpUnhandledExceptionInspection */
     public function execute(): MySqlQueryBuilder
     {
         $this->result = $this->statement->executeQuery();
@@ -44,13 +41,11 @@ final class MySqlQueryBuilder implements QueryBuilder
         return $this;
     }
 
-    /** @noinspection PhpUnhandledExceptionInspection */
     public function fetchOne(): array
     {
         return $this->result->fetchAssociative() ?: [];
     }
 
-    /** @noinspection PhpUnhandledExceptionInspection */
     public function fetchOneOrNull(): ?array
     {
         $row = $this->result->fetchAssociative();

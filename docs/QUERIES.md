@@ -60,6 +60,4 @@
 
 <br>
 
-> Requests are available for import into
-`Postman`.
-> [Get the collection here](/docs/Account.postman_collection.json).
+> Requests and environment variables are available for import in `Postman`. You can access them [here](/docs/postman).

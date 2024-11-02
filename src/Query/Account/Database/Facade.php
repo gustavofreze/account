@@ -14,7 +14,6 @@ final readonly class Facade implements AccountQuery
     {
     }
 
-    /** @noinspection PhpUnhandledExceptionInspection */
     public function findAccountById(string $id): ?Account
     {
         $result = $this->connection
