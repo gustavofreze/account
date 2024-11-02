@@ -15,6 +15,7 @@ use Respect\Validation\Validator;
 final readonly class Request
 {
     private const MINIMUM_DOCUMENT_LENGTH = 11;
+    private const MAXIMUM_DOCUMENT_LENGTH = 50;
 
     public function __construct(private array $payload)
     {
@@ -32,7 +33,10 @@ final readonly class Request
     private function validate(): void
     {
         try {
-            $documentValidator = Validator::stringType()->digit()->length(self::MINIMUM_DOCUMENT_LENGTH);
+            $documentValidator = Validator::stringType()
+                ->digit()
+                ->length(self::MINIMUM_DOCUMENT_LENGTH, self::MAXIMUM_DOCUMENT_LENGTH);
+
             $holderValidator = Validator::key('document', $documentValidator);
             $payloadValidator = Validator::key('holder', $holderValidator);
             $payloadValidator->assert($this->payload);

@@ -27,13 +27,14 @@ final class HolderTest extends TestCase
     public static function invalidSimpleIdentityDataProvider(): array
     {
         return [
-            'Too short'             => ['number' => '123'],
-            'Empty string'          => ['number' => ''],
-            'Only whitespace'       => ['number' => '           '],
-            'Contains spaces'       => ['number' => '123 456 7890'],
-            'Mixed alphanumeric'    => ['number' => '12345abcde'],
-            'Special characters'    => ['number' => '1234!@#$%^'],
-            'Alphabetic characters' => ['number' => 'abcdefghijk']
+            'Only whitespace spaces only'             => ['number' => '           '],
+            'Too long more than 50 digits'            => ['number' => str_repeat('1', 51)],
+            'Too short less than 11 digits'           => ['number' => '123'],
+            'Alphabetic characters letters only'      => ['number' => 'abcdefghijk'],
+            'Empty string no characters provided'     => ['number' => ''],
+            'Contains spaces numbers with spaces'     => ['number' => '123 456 7890'],
+            'Mixed alphanumeric letters and numbers'  => ['number' => '12345abcde'],
+            'Special characters numbers with symbols' => ['number' => '1234!@#$%^']
         ];
     }
 }

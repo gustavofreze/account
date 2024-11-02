@@ -25,7 +25,7 @@ test: migrate-test-database ## Run all tests with coverage
 test-no-coverage: migrate-test-database ## Run all tests without coverage
 	@${APP_TEST_RUN} composer run tests-no-coverage
 
-review: ## Run code review
+review: ## Run static code analysis
 	@${APP_RUN} composer review
 
 fix-style: ## Fix code style
