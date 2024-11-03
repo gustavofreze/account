@@ -24,10 +24,11 @@ Transactions have specific types, e.g., **Normal Purchase**, **Purchase with ins
 **Normal Purchase** and **Withdrawal** transactions are recorded with **negative** values, while **Credit Voucher**
 transactions are recorded with **positive** values.
 
-<figure style="text-align: center;">
-    <img src="./docs/excalidraw/account-flow.png" alt="Account flow diagram.">
-    <figcaption>Account flow diagram</figcaption>
-</figure>
+<p align="center">
+    <img src="./docs/excalidraw/account-flow.svg" alt="Account flow diagram" width="800">
+</p>
+
+<p align="center"><small>Figure 01: Account transaction flow diagram.</small></p>
 
 <div id='use_cases'></div> 
 
