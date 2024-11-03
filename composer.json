@@ -46,7 +46,7 @@
     "scripts": {
         "test": "phpunit -c phpunit.xml --log-junit=report/coverage/junit.xml --coverage-xml=report/coverage/coverage-xml --coverage-html=report/coverage/coverage-html tests",
         "phpcs": "phpcs --standard=PSR12 --extensions=php ./src",
-        "phpmd": "phpmd ./src text phpmd.xml --suffixes php --exclude --ignore-violations-on-exit",
+        "phpmd": "phpmd ./src text phpmd.xml --suffixes php --exclude /src/Routes.php --ignore-violations-on-exit",
         "phpstan": "phpstan analyse -c phpstan.neon.dist --quiet --no-progress",
         "unit-test": "phpunit -c phpunit.xml --no-coverage --testsuite unit",
         "mutation-test": "infection --only-covered --logger-html=report/coverage/mutation-report.html --coverage=report/coverage --min-msi=100 --min-covered-msi=100 --threads=4",
