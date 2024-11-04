@@ -45,7 +45,9 @@ transactions are recorded with **positive** values.
 
 ### Queries
 
-- [Find account by id](docs/QUERIES.md#find-account-by-id)
+- [Retrieve account balance](docs/QUERIES.md#retrieve-account-balance)
+- [Retrieve an account by id](docs/QUERIES.md#retrieve-an-account-by-id)
+- [Retrieve account transactions](docs/QUERIES.md#retrieve-account-transactions)
 
 <div id='installation'></div> 
 

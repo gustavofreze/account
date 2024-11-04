@@ -11,8 +11,10 @@ use Account\Driver\Http\Endpoints\Transaction\CreateTransaction;
 use Account\Driver\Http\Endpoints\Transaction\CreateTransactionExceptionHandler;
 use Account\Driver\Http\Middlewares\ErrorHandling;
 use Account\Driver\Http\Middlewares\Logging;
-use Account\Query\Account\FindAccountById;
 use Account\Query\Account\QueryAccountExceptionHandler;
+use Account\Query\Account\RetrieveAccountBalance;
+use Account\Query\Account\RetrieveAccountById;
+use Account\Query\Account\RetrieveAccountTransactions;
 use Account\Query\QueryErrorHandling;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
@@ -54,7 +56,13 @@ final class Routes
             $errorHandling = new ErrorHandling(exceptionHandler: new OpenAccountExceptionHandler());
             $queryErrorHandling = new QueryErrorHandling(exceptionHandler: new QueryAccountExceptionHandler());
 
-            $route->get('/{accountId}', FindAccountById::class)
+            $route->get('/{accountId}', RetrieveAccountById::class)
+                ->addMiddleware($queryErrorHandling);
+
+            $route->get('/{accountId}/balance', RetrieveAccountBalance::class)
+                ->addMiddleware($queryErrorHandling);
+
+            $route->get('/{accountId}/transactions', RetrieveAccountTransactions::class)
                 ->addMiddleware($queryErrorHandling);
 
             $route->post('', OpenAccount::class)

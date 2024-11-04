@@ -35,11 +35,11 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "id": "50aaf160-0e69-444b-b625-e83cc76d6fcd"
-    }
-    ```
+  ```json
+  {
+      "id": "50aaf160-0e69-444b-b625-e83cc76d6fcd"
+  }
+  ```
 
 - `409 Conflict`
 
@@ -48,11 +48,11 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": "An account with document number <76169209004341414> already exists."
-    }
-    ```
+  ```json
+  {
+      "error": "An account with document number <76169209004341414> already exists."
+  }
+  ```
 
 - `422 Unprocessable Entity`
 
@@ -61,13 +61,13 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": {
-            "holder": "document must contain only digits (0-9)."
-        }
-    }
-    ```
+  ```json
+  {
+      "error": {
+          "holder": "document must contain only digits (0-9)."
+      }
+  }
+  ```
 
 - `500 Internal Server Error`
 
@@ -76,11 +76,11 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": "An internal server error occurred."
-    }
-    ```
+  ```json
+  {
+      "error": "An internal server error occurred."
+  }
+  ```
 
 <div id='account_crediting'></div> 
 
@@ -124,11 +124,11 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": "Account with ID <50aaf160-0e69-444b-b625-e83cc76d6fcd> not found."
-    }
-    ```
+  ```json
+  {
+      "error": "Account with ID <50aaf160-0e69-444b-b625-e83cc76d6fcd> not found."
+  }
+  ```
 
 - `422 Unprocessable Entity`
 
@@ -137,13 +137,13 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": {
-            "amount": "must be a positive decimal."
-        }
-    }
-    ```
+  ```json
+  {
+      "error": {
+          "amount": "must be a positive decimal."
+      }
+  }
+  ```
 
 - `500 Internal Server Error`
 
@@ -152,11 +152,11 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": "An internal server error occurred."
-    }
-    ```
+  ```json
+  {
+      "error": "An internal server error occurred."
+  }
+  ```
 
 <div id='account_debiting'></div> 
 
@@ -200,11 +200,11 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": "Account with ID <50aaf160-0e69-444b-b625-e83cc76d6fcd> not found."
-    }
-    ```
+  ```json
+  {
+      "error": "Account with ID <50aaf160-0e69-444b-b625-e83cc76d6fcd> not found."
+  }
+  ```
 
 - `422 Unprocessable Entity`
 
@@ -213,13 +213,13 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": {
-            "amount": "must be a positive decimal."
-        }
-    }
-    ```
+  ```json
+  {
+      "error": {
+          "amount": "must be a positive decimal."
+      }
+  }
+  ```
 
 - `500 Internal Server Error`
 
@@ -228,11 +228,11 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": "An internal server error occurred."
-    }
-    ```
+  ```json
+  {
+      "error": "An internal server error occurred."
+  }
+  ```
 
 <div id='account_withdrawal'></div> 
 
@@ -276,11 +276,11 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": "Account with ID <50aaf160-0e69-444b-b625-e83cc76d6fcd> not found."
-    }
-    ```
+  ```json
+  {
+      "error": "Account with ID <50aaf160-0e69-444b-b625-e83cc76d6fcd> not found."
+  }
+  ```
 
 - `422 Unprocessable Entity`
 
@@ -289,13 +289,13 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": {
-            "amount": "must be a positive decimal."
-        }
-    }
-    ```
+  ```json
+  {
+      "error": {
+          "amount": "must be a positive decimal."
+      }
+  }
+  ```
 
 - `500 Internal Server Error`
 
@@ -304,11 +304,11 @@
   **Content-Type**: application/json
 
   **Body**:
-    ```json
-    {
-        "error": "An internal server error occurred."
-    }
-    ```
+  ```json
+  {
+      "error": "An internal server error occurred."
+  }
+  ```
 
 <br>
 

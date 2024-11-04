@@ -9,7 +9,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use TinyBlocks\Http\HttpResponse;
 
-final readonly class FindAccountById implements RequestHandlerInterface
+final readonly class RetrieveAccountBalance implements RequestHandlerInterface
 {
     public function __construct(private AccountQuery $query)
     {
@@ -20,12 +20,14 @@ final readonly class FindAccountById implements RequestHandlerInterface
         $request = new Request(request: $request);
         $accountId = $request->getAccountId();
 
-        $account = $this->query->findAccountById(id: $accountId);
+        $account = $this->query->findById(accountId: $accountId);
 
         if ($account === null) {
             throw new AccountNotFound(id: $accountId);
         }
 
-        return HttpResponse::ok(data: $account->toArray());
+        $balance = $this->query->balanceOf(accountId: $accountId);
+
+        return HttpResponse::ok(data: $balance->toArray());
     }
 }

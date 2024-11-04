@@ -4,26 +4,28 @@ declare(strict_types=1);
 
 namespace Account\Query\Account;
 
-use Account\Query\Account\Database\Records\Account;
 use Account\Query\Account\Mocks\AccountQueryMock;
+use Account\Query\Account\Models\Account;
 use Account\Query\QueryErrorHandling;
 use Account\RequestFactory;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use TinyBlocks\Http\HttpCode;
 
-final class FindAccountByIdTest extends TestCase
+final class RetrieveAccountByIdTest extends TestCase
 {
+    private const string PATH = '/accounts/{accountId}';
+
     private AccountQuery $query;
 
-    private FindAccountById $endpoint;
+    private RetrieveAccountById $endpoint;
 
     private QueryErrorHandling $middleware;
 
     protected function setUp(): void
     {
         $this->query = new AccountQueryMock();
-        $this->endpoint = new FindAccountById(query: $this->query);
+        $this->endpoint = new RetrieveAccountById(query: $this->query);
         $this->middleware = new QueryErrorHandling(exceptionHandler: new QueryAccountExceptionHandler());
     }
 
@@ -34,10 +36,10 @@ final class FindAccountByIdTest extends TestCase
             'id'                   => Uuid::uuid4()->toString(),
             'holderDocumentNumber' => '12345678901'
         ]);
-        $this->query->save(account: $account);
+        $this->query->saveAccount(account: $account);
 
         /** @And the account ID is used to create a request */
-        $request = RequestFactory::getFrom(path: '/accounts/{accountId}', parameters: ['accountId' => $account->id]);
+        $request = RequestFactory::getFrom(path: self::PATH, parameters: ['accountId' => $account->id]);
 
         /** @When the request is processed by the handler */
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
@@ -48,7 +50,7 @@ final class FindAccountByIdTest extends TestCase
         /** @And the response body should contain the account details */
         $response = json_decode($actual->getBody()->__toString(), true);
 
-        self::assertSame($account->id, $response['id']);
+        self::assertSame($account->id, $response['account_id']);
         self::assertSame($account->holder->document, $response['holder']['document']);
     }
 
@@ -58,7 +60,7 @@ final class FindAccountByIdTest extends TestCase
         $parameters = ['accountId' => '4798c22b-1f50-4ac8-9ddd-df6dcb210b41'];
 
         /** @And a request is created with this ID */
-        $request = RequestFactory::getFrom(path: '/accounts/{accountId}', parameters: $parameters);
+        $request = RequestFactory::getFrom(path: self::PATH, parameters: $parameters);
 
         /** @When the request is processed, triggering an unknown error */
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
@@ -78,7 +80,7 @@ final class FindAccountByIdTest extends TestCase
         $parameters = ['accountId' => 'invalid-uuid-format'];
 
         /** @And this data is used to create a request */
-        $request = RequestFactory::getFrom(path: '/accounts/{accountId}', parameters: $parameters);
+        $request = RequestFactory::getFrom(path: self::PATH, parameters: $parameters);
 
         /** @When the request is processed by the handler */
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
@@ -98,7 +100,7 @@ final class FindAccountByIdTest extends TestCase
         $parameters = ['accountId' => '0cba568f-1c8e-4fed-bef5-8b1166993dd2'];
 
         /** @And this data is used to create a request */
-        $request = RequestFactory::getFrom(path: '/accounts/{accountId}', parameters: $parameters);
+        $request = RequestFactory::getFrom(path: self::PATH, parameters: $parameters);
 
         /** @When the request is processed by the handler */
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
