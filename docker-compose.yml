@@ -1,0 +1,57 @@
+services:
+  account:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: account
+    env_file:
+      - ./config/local.env
+    depends_on:
+      - account-adm
+
+  account-adm:
+    image: mysql:8.1
+    restart: unless-stopped
+    hostname: account-adm
+    container_name: account-adm
+    ports:
+      - "3307:3306"
+    environment:
+      TZ: "America/Sao_Paulo"
+      MYSQL_ROOT_PASSWORD: "root"
+    command: --default-authentication-plugin=caching_sha2_password
+    volumes:
+      - ./config/database/mysql:/scripts/config
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    container_name: nginx
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.account.entrypoints=http"
+      - "traefik.http.routers.account.rule=Host(`account.localhost`)"
+    volumes:
+      - ./public:/var/www/html/public
+      - ./config/nginx/site.conf:/etc/nginx/conf.d/site.conf
+    depends_on:
+      - account
+
+  traefik:
+    image: traefik:3.2
+    restart: unless-stopped
+    container_name: traefik
+    ports:
+      - "80:80"
+      - "8083:8083"
+    command:
+      - "--log.level=FATAL"
+      - "--accesslog=false"
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--entrypoints.http.address=:80"
+      - "--providers.docker.exposedbydefault=false"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro

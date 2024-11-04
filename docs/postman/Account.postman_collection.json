@@ -1,0 +1,253 @@
+{
+	"info": {
+		"_postman_id": "e588f2ae-ad10-4205-afb1-f2a6e11bbd22",
+		"name": "Account",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29277382"
+	},
+	"item": [
+		{
+			"name": "Use cases",
+			"item": [
+				{
+					"name": "Account opening",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    let response = pm.response.json();",
+									"    pm.environment.set(\"accountId\", response.id);",
+									"} "
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"holder\": {\n        \"document\": \"76169209004341414\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{account-dns}}/accounts",
+							"host": [
+								"{{account-dns}}"
+							],
+							"path": [
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Account crediting",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": 60.00,\n    \"account_id\": \"{{accountId}}\",\n    \"operation_type_id\": 4\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{account-dns}}/transactions",
+							"host": [
+								"{{account-dns}}"
+							],
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Account debiting",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": 123.45,\n    \"account_id\": \"{{accountId}}\",\n    \"operation_type_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{account-dns}}/transactions",
+							"host": [
+								"{{account-dns}}"
+							],
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Purchase with installments",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"amount\": 100.00,\n    \"account_id\": \"{{accountId}}\",\n    \"operation_type_id\": 2\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{account-dns}}/transactions",
+									"host": [
+										"{{account-dns}}"
+									],
+									"path": [
+										"transactions"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						}
+					]
+				},
+				{
+					"name": "Account withdrawal",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": 25.50,\n    \"account_id\": \"{{accountId}}\",\n    \"operation_type_id\": 3\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{account-dns}}/transactions",
+							"host": [
+								"{{account-dns}}"
+							],
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Queries",
+			"item": [
+				{
+					"name": "Retrieve account balance",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{account-dns}}/accounts/{{accountId}}/balance",
+							"host": [
+								"{{account-dns}}"
+							],
+							"path": [
+								"accounts",
+								"{{accountId}}",
+								"balance"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve an account by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{account-dns}}/accounts/{{accountId}}",
+							"host": [
+								"{{account-dns}}"
+							],
+							"path": [
+								"accounts",
+								"{{accountId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve account transactions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{account-dns}}/accounts/{{accountId}}/transactions?operationTypeIds[]=1&operationTypeIds[]=2&operationTypeIds[]=3&operationTypeIds[]=4",
+							"host": [
+								"{{account-dns}}"
+							],
+							"path": [
+								"accounts",
+								"{{accountId}}",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "operationTypeIds[]",
+									"value": "1"
+								},
+								{
+									"key": "operationTypeIds[]",
+									"value": "2"
+								},
+								{
+									"key": "operationTypeIds[]",
+									"value": "3"
+								},
+								{
+									"key": "operationTypeIds[]",
+									"value": "4"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
