@@ -25,6 +25,6 @@ final readonly class AccountCreditingHandler implements AccountCrediting
         }
 
         $account = $account->credit(transaction: $command->transaction);
-        $this->accounts->applyTransactionTo(account: $account);
+        $this->accounts->applyCreditTransactionTo(account: $account);
     }
 }

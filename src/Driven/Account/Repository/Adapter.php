@@ -57,7 +57,75 @@ final readonly class Adapter implements Accounts
         return AccountRecord::from(result: $result)->toAccountOrNull();
     }
 
-    public function balanceOf(AccountId $id): Balance
+    public function applyCreditTransactionTo(Account $account): void
+    {
+        /** @var Transaction $transaction */
+        $transaction = $account->transactions->first();
+
+        $this->connection
+            ->with()
+            ->query(sql: Queries::INSERT_TRANSACTION)
+            ->bind(data: [
+                ':id'              => $transaction->getId()->toString(),
+                ':amount'          => $transaction->getAmount()->toFloat(),
+                ':accountId'       => $account->id->toString(),
+                ':operationTypeId' => OperationType::CREDIT_VOUCHER->value
+            ])
+            ->execute();
+    }
+
+    public function applyDebitTransactionTo(Account $account, Transaction $transaction): void
+    {
+        $this->connection->inTransaction(
+            useCase: function (RelationalConnection $connection) use ($account, $transaction) {
+                $accountId = $account->id;
+                $balance = $this->balanceOf(id: $accountId);
+                $account = $account->debit(balance: $balance, transaction: $transaction);
+
+                /** @var Transaction $transaction */
+                $transaction = $account->transactions->first();
+                $operationTypeId = OperationType::fromDebitTransaction(transaction: $transaction);
+
+                $connection
+                    ->with()
+                    ->query(sql: Queries::INSERT_TRANSACTION)
+                    ->bind(data: [
+                        ':id'              => $transaction->getId()->toString(),
+                        ':amount'          => $transaction->getAmount()->toFloat(),
+                        ':accountId'       => $accountId->toString(),
+                        ':operationTypeId' => $operationTypeId->value
+                    ])
+                    ->execute();
+            }
+        );
+    }
+
+    public function applyWithdrawalTransactionTo(Account $account, Transaction $transaction): void
+    {
+        $this->connection->inTransaction(
+            useCase: function (RelationalConnection $connection) use ($account, $transaction) {
+                $accountId = $account->id;
+                $balance = $this->balanceOf(id: $accountId);
+                $account = $account->withdraw(balance: $balance, transaction: $transaction);
+
+                /** @var Transaction $transaction */
+                $transaction = $account->transactions->first();
+
+                $connection
+                    ->with()
+                    ->query(sql: Queries::INSERT_TRANSACTION)
+                    ->bind(data: [
+                        ':id'              => $transaction->getId()->toString(),
+                        ':amount'          => $transaction->getAmount()->toFloat(),
+                        ':accountId'       => $accountId->toString(),
+                        ':operationTypeId' => OperationType::WITHDRAWAL->value
+                    ])
+                    ->execute();
+            }
+        );
+    }
+
+    private function balanceOf(AccountId $id): Balance
     {
         $result = $this->connection
             ->with()
@@ -67,29 +135,5 @@ final readonly class Adapter implements Accounts
             ->fetchOne();
 
         return BalanceRecord::from(result: $result)->toBalance();
-    }
-
-    public function applyTransactionTo(Account $account): void
-    {
-        $this->connection->inTransaction(
-            useCase: function (RelationalConnection $connection) use ($account) {
-                $account
-                    ->transactions
-                    ->each(actions: function (Transaction $transaction) use ($account, $connection) {
-                        $operationTypeId = OperationType::fromTransaction(transaction: $transaction);
-
-                        $connection
-                            ->with()
-                            ->query(sql: Queries::INSERT_TRANSACTION)
-                            ->bind(data: [
-                                ':id'              => $transaction->getId()->toString(),
-                                ':amount'          => $transaction->getAmount()->toFloat(),
-                                ':accountId'       => $account->id->toString(),
-                                ':operationTypeId' => $operationTypeId->value
-                            ])
-                            ->execute();
-                    });
-            }
-        );
     }
 }

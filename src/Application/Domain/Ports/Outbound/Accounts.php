@@ -6,8 +6,8 @@ namespace Account\Application\Domain\Ports\Outbound;
 
 use Account\Application\Domain\Models\Account\Account;
 use Account\Application\Domain\Models\Account\AccountId;
-use Account\Application\Domain\Models\Account\Balance;
 use Account\Application\Domain\Models\Account\Holder;
+use Account\Application\Domain\Models\Transaction\Transaction;
 
 interface Accounts
 {
@@ -35,17 +35,25 @@ interface Accounts
     public function findByHolder(Holder $holder): ?Account;
 
     /**
-     * Retrieves the current balance of the specified account.
+     * Applies a debit transaction to the specified account.
      *
-     * @param AccountId $id The unique identifier of the account.
-     * @return Balance The current balance of the account.
+     * @param Account $account The account to which the transaction is applied.
+     * @param Transaction $transaction The transaction representing the debit operation.
      */
-    public function balanceOf(AccountId $id): Balance;
+    public function applyDebitTransactionTo(Account $account, Transaction $transaction): void;
 
     /**
-     * Applies a pending transaction and updates the balance of the specified account.
+     * Applies a credit transaction to the specified account.
      *
-     * @param Account $account The account to which the transaction is applied, with balance adjusted accordingly.
+     * @param Account $account The account to which the transaction is applied.
      */
-    public function applyTransactionTo(Account $account): void;
+    public function applyCreditTransactionTo(Account $account): void;
+
+    /**
+     * Applies a withdrawal transaction to the specified account.
+     *
+     * @param Account $account The account to which the transaction is applied.
+     * @param Transaction $transaction The transaction representing the withdrawal operation.
+     */
+    public function applyWithdrawalTransactionTo(Account $account, Transaction $transaction): void;
 }

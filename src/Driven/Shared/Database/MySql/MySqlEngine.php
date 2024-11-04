@@ -8,6 +8,7 @@ use Account\Driven\Shared\Database\DatabaseFailure;
 use Account\Driven\Shared\Database\RelationalConnection;
 use Closure;
 use Doctrine\DBAL\Connection;
+use DomainException;
 use Throwable;
 
 final class MySqlEngine implements RelationalConnection
@@ -30,6 +31,9 @@ final class MySqlEngine implements RelationalConnection
             $this->connection->beginTransaction();
             $useCase($this);
             $this->connection->commit();
+        } catch (DomainException $exception) {
+            $this->connection->rollBack();
+            throw $exception;
         } catch (Throwable $exception) {
             $this->connection->rollBack();
             throw new DatabaseFailure(message: $exception->getMessage());

@@ -14,11 +14,15 @@ use Account\Application\Domain\Models\Transaction\Amounts\PositiveAmount;
 use Account\Application\Domain\Models\Transaction\Operations\CreditVoucher;
 use Account\Application\Domain\Ports\Inbound\AccountCrediting;
 use Account\Application\Domain\Ports\Outbound\Accounts;
+use Account\Driven\Shared\Database\RelationalConnection;
+use Test\Integration\Application\Repository;
 use Test\Integration\IntegrationTestCase;
 
 final class AccountCreditingHandlerTest extends IntegrationTestCase
 {
     private Accounts $accounts;
+
+    private Repository $repository;
 
     private AccountCrediting $handler;
 
@@ -26,6 +30,7 @@ final class AccountCreditingHandlerTest extends IntegrationTestCase
     {
         $this->handler = $this->get(class: AccountCrediting::class);
         $this->accounts = $this->get(class: Accounts::class);
+        $this->repository = new Repository(connection: $this->get(class: RelationalConnection::class));
     }
 
     public function testCreditIncreasesAccountBalance(): void
@@ -55,7 +60,7 @@ final class AccountCreditingHandlerTest extends IntegrationTestCase
         self::assertSame($account->holder->document->getNumber(), $actual->holder->document->getNumber());
 
         /** @And the account balance should be updated to 100.00 */
-        $balance = $this->accounts->balanceOf(id: $actual->id);
+        $balance = $this->repository->balanceOf(id: $actual->id);
 
         self::assertSame(100.00, $balance->amount->toFloat());
     }

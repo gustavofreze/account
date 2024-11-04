@@ -24,8 +24,6 @@ final readonly class AccountDebitingHandler implements AccountDebiting
             throw new AccountNotFound(id: $id);
         }
 
-        $balance = $this->accounts->balanceOf(id: $id);
-        $account = $account->debit(balance: $balance, transaction: $command->transaction);
-        $this->accounts->applyTransactionTo(account: $account);
+        $this->accounts->applyDebitTransactionTo(account: $account, transaction: $command->transaction);
     }
 }

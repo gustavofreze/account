@@ -17,11 +17,15 @@ use Account\Application\Domain\Models\Transaction\Operations\CreditVoucher;
 use Account\Application\Domain\Models\Transaction\Operations\Withdrawal;
 use Account\Application\Domain\Ports\Inbound\AccountWithdrawal;
 use Account\Application\Domain\Ports\Outbound\Accounts;
+use Account\Driven\Shared\Database\RelationalConnection;
+use Test\Integration\Application\Repository;
 use Test\Integration\IntegrationTestCase;
 
 final class AccountWithdrawalHandlerTest extends IntegrationTestCase
 {
     private Accounts $accounts;
+
+    private Repository $repository;
 
     private AccountWithdrawal $handler;
 
@@ -29,6 +33,7 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
     {
         $this->handler = $this->get(class: AccountWithdrawal::class);
         $this->accounts = $this->get(class: Accounts::class);
+        $this->repository = new Repository(connection: $this->get(class: RelationalConnection::class));
     }
 
     public function testSuccessfulWithdrawal(): void
@@ -48,7 +53,7 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
         );
 
         /** @And the transaction is recorded in the account history */
-        $this->accounts->applyTransactionTo(account: $account);
+        $this->accounts->applyCreditTransactionTo(account: $account);
 
         /** @And a withdrawal command is created for 50.00 */
         $command = new RequestWithdrawal(
@@ -66,7 +71,7 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
         self::assertSame($account->holder->document->getNumber(), $actual->holder->document->getNumber());
 
         /** @And the account balance should reflect a decrease of 50.00, resulting in a final balance of 50.00 */
-        $balance = $this->accounts->balanceOf(id: $actual->id);
+        $balance = $this->repository->balanceOf(id: $actual->id);
 
         self::assertSame(50.00, $balance->amount->toFloat());
     }
@@ -88,7 +93,7 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
         );
 
         /** @And the transaction is recorded */
-        $this->accounts->applyTransactionTo(account: $account);
+        $this->accounts->applyCreditTransactionTo(account: $account);
 
         /** @And a first withdrawal command for 60.00 is created */
         $firstCommand = new RequestWithdrawal(
@@ -100,7 +105,7 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
         $this->handler->handle(command: $firstCommand);
 
         /** @Then the account balance should reflect the first withdrawal */
-        $balanceAfterFirstWithdrawal = $this->accounts->balanceOf(id: $account->id);
+        $balanceAfterFirstWithdrawal = $this->repository->balanceOf(id: $account->id);
 
         self::assertSame(40.00, $balanceAfterFirstWithdrawal->amount->toFloat());
 

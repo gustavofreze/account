@@ -24,8 +24,6 @@ final readonly class AccountWithdrawalHandler implements AccountWithdrawal
             throw new AccountNotFound(id: $id);
         }
 
-        $balance = $this->accounts->balanceOf(id: $id);
-        $account = $account->withdraw(balance: $balance, transaction: $command->transaction);
-        $this->accounts->applyTransactionTo(account: $account);
+        $this->accounts->applyWithdrawalTransactionTo(account: $account, transaction: $command->transaction);
     }
 }

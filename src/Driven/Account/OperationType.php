@@ -20,14 +20,12 @@ enum OperationType: int
     case NORMAL_PURCHASE = 1;
     case PURCHASE_WITH_INSTALLMENTS = 2;
 
-    public static function fromTransaction(Transaction $transaction): OperationType
+    public static function fromDebitTransaction(Transaction $transaction): OperationType
     {
         $type = get_class($transaction);
         $template = 'Unsupported transaction type <%s>.';
 
         return match ($type) {
-            Withdrawal::class               => self::WITHDRAWAL,
-            CreditVoucher::class            => self::CREDIT_VOUCHER,
             NormalPurchase::class           => self::NORMAL_PURCHASE,
             PurchaseWithInstallments::class => self::PURCHASE_WITH_INSTALLMENTS,
             default                         => throw new InvalidArgumentException(message: sprintf($template, $type))

@@ -128,7 +128,7 @@ final class AccountQueryTest extends IntegrationTestCase
         $actual = $this->query->transactionsOf(accountId: $account->id, filters: TransactionFilters::from(data: []));
 
         /** @Then the retrieved balance should match the expected balance */
-        self::assertSame($transactions->toArray(), $actual->toArray());
+        self::assertSame($transactions->all(), $actual->all());
     }
 
     public function testSingleTransaction(): void
@@ -157,7 +157,7 @@ final class AccountQueryTest extends IntegrationTestCase
         $actual = $this->query->transactionsOf(accountId: $account->id, filters: TransactionFilters::from(data: []));
 
         /** @Then the retrieved transactions should match the expected transaction */
-        self::assertSame([$transaction->toArray()], $actual->toArray());
+        self::assertSame([$transaction->toArray()], $actual->all());
     }
 
     public function testTransactionsOfWithFilters(): void
@@ -205,9 +205,9 @@ final class AccountQueryTest extends IntegrationTestCase
         );
 
         /** @Then the retrieved transactions should match the expected transactions */
-        $actual = $actual->toArray()[0];
+        $actual = $actual->all()[0];
 
-        self::assertSame($transactions->last()->toArray(), $actual);
+        self::assertSame($transactions->all()[2], $actual);
         self::assertArrayHasKey('id', $actual);
         self::assertArrayHasKey('amount', $actual);
         self::assertArrayHasKey('created_at', $actual);

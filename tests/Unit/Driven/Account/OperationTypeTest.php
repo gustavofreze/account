@@ -21,6 +21,6 @@ final class OperationTypeTest extends TestCase
         $this->expectExceptionMessage(sprintf($template, get_class($unsupportedTransaction)));
 
         /** @When fromTransaction is called with the unsupported transaction */
-        OperationType::fromTransaction(transaction: $unsupportedTransaction);
+        OperationType::fromDebitTransaction(transaction: $unsupportedTransaction);
     }
 }

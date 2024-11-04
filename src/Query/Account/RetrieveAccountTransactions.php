@@ -28,8 +28,8 @@ final readonly class RetrieveAccountTransactions implements RequestHandlerInterf
             throw new AccountNotFound(id: $accountId);
         }
 
-        $balance = $this->query->transactionsOf(accountId: $accountId, filters: $filters);
+        $transactions = $this->query->transactionsOf(accountId: $accountId, filters: $filters);
 
-        return HttpResponse::ok(data: $balance->toArray());
+        return HttpResponse::ok(data: $transactions->all());
     }
 }

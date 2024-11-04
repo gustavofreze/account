@@ -18,11 +18,15 @@ use Account\Application\Domain\Models\Transaction\Operations\NormalPurchase;
 use Account\Application\Domain\Models\Transaction\Operations\PurchaseWithInstallments;
 use Account\Application\Domain\Ports\Inbound\AccountDebiting;
 use Account\Application\Domain\Ports\Outbound\Accounts;
+use Account\Driven\Shared\Database\RelationalConnection;
+use Test\Integration\Application\Repository;
 use Test\Integration\IntegrationTestCase;
 
 final class AccountDebitingHandlerTest extends IntegrationTestCase
 {
     private Accounts $accounts;
+
+    private Repository $repository;
 
     private AccountDebiting $handler;
 
@@ -30,6 +34,7 @@ final class AccountDebitingHandlerTest extends IntegrationTestCase
     {
         $this->handler = $this->get(class: AccountDebiting::class);
         $this->accounts = $this->get(class: Accounts::class);
+        $this->repository = new Repository(connection: $this->get(class: RelationalConnection::class));
     }
 
     public function testDebitDecreasesAccountBalanceWithNormalPurchase(): void
@@ -49,7 +54,7 @@ final class AccountDebitingHandlerTest extends IntegrationTestCase
         );
 
         /** @And the transaction is recorded in the account history */
-        $this->accounts->applyTransactionTo(account: $account);
+        $this->accounts->applyCreditTransactionTo(account: $account);
 
         /** @And a debit command is created with a Normal Purchase transaction of 50.00 */
         $command = new DebitAccount(
@@ -67,7 +72,7 @@ final class AccountDebitingHandlerTest extends IntegrationTestCase
         self::assertSame($account->holder->document->getNumber(), $actual->holder->document->getNumber());
 
         /** @And the account balance should reflect a decrease of 50.00, resulting in a final balance of 50.00 */
-        $balance = $this->accounts->balanceOf(id: $actual->id);
+        $balance = $this->repository->balanceOf(id: $actual->id);
 
         self::assertSame(50.00, $balance->amount->toFloat());
     }
@@ -89,7 +94,7 @@ final class AccountDebitingHandlerTest extends IntegrationTestCase
         );
 
         /** @And the transaction is recorded in the account history */
-        $this->accounts->applyTransactionTo(account: $account);
+        $this->accounts->applyCreditTransactionTo(account: $account);
 
         /** @And a debit command is created with a Purchase With Installments transaction of 50.00 */
         $command = new DebitAccount(
@@ -107,7 +112,7 @@ final class AccountDebitingHandlerTest extends IntegrationTestCase
         self::assertSame($account->holder->document->getNumber(), $actual->holder->document->getNumber());
 
         /** @And the account balance should reflect a decrease of 50.00, resulting in a final balance of 50.00 */
-        $balance = $this->accounts->balanceOf(id: $actual->id);
+        $balance = $this->repository->balanceOf(id: $actual->id);
 
         self::assertSame(50.00, $balance->amount->toFloat());
     }

@@ -89,6 +89,85 @@ final class RetrieveAccountTransactionsTest extends TestCase
         self::assertEquals($account->id, $response[0]['account_id']);
     }
 
+    public function testRetrieveAccountTransactionsWithNoTransactions(): void
+    {
+        /** @Given an existing account is saved */
+        $account = Account::from(data: [
+            'id'                   => Uuid::uuid4()->toString(),
+            'holderDocumentNumber' => '12345678901'
+        ]);
+        $this->query->saveAccount(account: $account);
+
+        /** @And the account ID is used to create a request */
+        $request = RequestFactory::getFrom(
+            path: self::PATH,
+            parameters: ['accountId' => $account->id]
+        );
+
+        /** @When the request is processed by the handler */
+        $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
+
+        /** @Then the response status should indicate success */
+        self::assertSame(HttpCode::OK->value, $actual->getStatusCode());
+
+        /** @And the response body should be an empty array */
+        $response = json_decode($actual->getBody()->__toString(), true);
+
+        /** @Then it should be an empty array */
+        self::assertIsArray($response);
+        self::assertEmpty($response);
+    }
+
+    public function testRetrieveAccountTransactionsWithSingleTransaction(): void
+    {
+        /** @Given an existing account is saved */
+        $account = Account::from(data: [
+            'id'                   => Uuid::uuid4()->toString(),
+            'holderDocumentNumber' => '12345678901'
+        ]);
+        $this->query->saveAccount(account: $account);
+
+        /** @And the account ID is used to create a request */
+        $request = RequestFactory::getFrom(
+            path: self::PATH,
+            parameters: ['accountId' => $account->id]
+        );
+
+        /** @And there is a single transaction associated with this account */
+        $this->query->saveTransactions(transactions: [
+            Transaction::from(data: [
+                'id'              => Uuid::uuid4()->toString(),
+                'amount'          => '300.00',
+                'createdAt'       => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
+                'accountId'       => $account->id,
+                'operationTypeId' => 4
+            ])
+        ]);
+
+        /** @When the request is processed by the handler */
+        $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
+
+        /** @Then the response status should indicate success */
+        self::assertSame(HttpCode::OK->value, $actual->getStatusCode());
+
+        /** @And the response body should contain the transaction */
+        $response = json_decode($actual->getBody()->__toString(), true);
+
+        /** @Then it should match the expected structure */
+        self::assertIsArray($response);
+        self::assertNotEmpty($response);
+        self::assertArrayHasKey('id', $response[0]);
+        self::assertArrayHasKey('amount', $response[0]);
+        self::assertArrayHasKey('created_at', $response[0]);
+        self::assertArrayHasKey('account_id', $response[0]);
+        self::assertArrayHasKey('operation_type_id', $response[0]);
+
+        /** @And the transaction details should be correct */
+        self::assertEquals(4, $response[0]['operation_type_id']);
+        self::assertEquals('300.00', $response[0]['amount']);
+        self::assertEquals($account->id, $response[0]['account_id']);
+    }
+
     public function testExceptionWhenAccountNotFound(): void
     {
         /** @Given a request is made with a non-existent account ID */
