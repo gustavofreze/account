@@ -16,6 +16,10 @@ use Account\Application\Domain\Ports\Outbound\Accounts;
 use Account\Driven\Account\Repository\Adapter as AccountsAdapter;
 use Account\Driven\Shared\Database\MySql\MySqlEngine;
 use Account\Driven\Shared\Database\RelationalConnection;
+use Account\Driven\Shared\Logging\Logger;
+use Account\Driven\Shared\Logging\LoggerHandler;
+use Account\Driven\Shared\Logging\Obfuscator\Fields\SimpleIdentity;
+use Account\Driven\Shared\Logging\Obfuscator\Obfuscators;
 use Account\Driver\Http\Endpoints\Account\OpenAccount;
 use Account\Driver\Http\Endpoints\Transaction\CreateTransaction;
 use Account\Query\Account\AccountQuery;
@@ -23,6 +27,9 @@ use Account\Query\Account\Database\Facade as AccountQueryFacade;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger as MonoLogger;
 use PDO;
 
 use function DI\autowire;
@@ -34,9 +41,18 @@ final class Dependencies
     public static function definitions(): array
     {
         return [
+            Logger::class               => static function () {
+                $logger = new MonoLogger(name: 'StreamLogger');
+                $formatter = new LineFormatter('%message%');
+                $streamHandler = new StreamHandler('php://stdout');
+                $streamHandler->setFormatter($formatter);
+                $logger->pushHandler($streamHandler);
+                $obfuscators = Obfuscators::createFrom(elements: [new SimpleIdentity()]);
+
+                return new LoggerHandler(logger: $logger, obfuscators: $obfuscators);
+            },
             Accounts::class             => autowire(AccountsAdapter::class),
-            OpenAccount::class          => create(OpenAccount::class)->constructor(get(AccountOpeningHandler::class)),
-            Connection::class           => fn(): Connection => DriverManager::getConnection([
+            Connection::class           => static fn(): Connection => DriverManager::getConnection([
                 'driver'        => 'pdo_mysql',
                 'host'          => Environment::get(variable: 'DATABASE_HOST')->toString(),
                 'user'          => Environment::get(variable: 'DATABASE_USER')->toString(),
@@ -45,6 +61,7 @@ final class Dependencies
                 'password'      => Environment::get(variable: 'DATABASE_PASSWORD')->toString(),
                 'driverOptions' => [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8']
             ], new Configuration()),
+            OpenAccount::class          => create(OpenAccount::class)->constructor(get(AccountOpeningHandler::class)),
             AccountQuery::class         => autowire(AccountQueryFacade::class),
             AccountOpening::class       => autowire(AccountOpeningHandler::class),
             AccountDebiting::class      => autowire(AccountDebitingHandler::class),

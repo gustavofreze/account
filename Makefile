@@ -4,7 +4,7 @@ else
     PWD := $(shell pwd -L)
 endif
 
-PHP_IMAGE = gustavofreze/php:8.2
+PHP_IMAGE = gustavofreze/php:8.3
 FLYWAY_IMAGE = flyway/flyway:10.20.1
 
 APP_RUN = docker run -u root --rm -it --network=host -v ${PWD}:/app -w /app ${PHP_IMAGE}
@@ -15,7 +15,7 @@ MIGRATE_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_ad
 MIGRATE_TEST_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm_test -connectRetries=15
 
 .DEFAULT_GOAL := help
-.PHONY: start stop configure migrate-database clean-database migrate-test-database test test-no-coverage review show-reports help
+.PHONY: start stop configure migrate-database clean-database migrate-test-database test test-no-coverage review show-reports help show-logs
 
 start: ## Start application containers
 	@docker-compose up -d --build
@@ -47,6 +47,9 @@ clean-database: ## Clean database
 migrate-test-database: ## Run test database migrations
 	@${MIGRATE_TEST_DB} migrate
 
+show-logs: ## Display application logs
+	@docker logs -f account
+
 help: ## Display this help message
 	@echo "Usage: make [target]"
 	@echo ""
@@ -61,6 +64,9 @@ help: ## Display this help message
 	@echo ""
 	@echo "Reports"
 	@grep -E '^(show-reports):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "Observability"
+	@grep -E '^(show-logs):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Help"
 	@grep -E '^(help):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

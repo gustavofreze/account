@@ -14,5 +14,5 @@ interface Amount extends BigNumber
     /**
      * The scale for the amount's decimal precision.
      */
-    public const SCALE = 2;
+    public const int SCALE = 2;
 }

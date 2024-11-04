@@ -42,6 +42,8 @@
     </logging>
 
     <php>
+        <env name="APP_NAME" value="account"/>
+
         <env name="DATABASE_HOST" value="account-adm"/>
         <env name="DATABASE_PORT" value="3306"/>
         <env name="DATABASE_NAME" value="account_adm_test"/>

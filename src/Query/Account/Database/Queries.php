@@ -6,7 +6,7 @@ namespace Account\Query\Account\Database;
 
 final readonly class Queries
 {
-    public const FIND_BY_ID = '
+    public const string FIND_BY_ID = '
         SELECT BIN_TO_UUID(id)        AS id,
                holder_document_number AS holderDocumentNumber
         FROM accounts

@@ -17,11 +17,12 @@
         }
     },
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "slim/psr7": "^1.7",
         "slim/slim": "^4.14",
         "ramsey/uuid": "^4.7",
         "doctrine/dbal": "^3.9",
+        "monolog/monolog": "^3.7",
         "tiny-blocks/math": "^3",
         "tiny-blocks/http": "^3",
         "respect/validation": "^2.3",

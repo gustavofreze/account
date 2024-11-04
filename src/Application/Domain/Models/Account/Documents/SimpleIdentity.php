@@ -8,7 +8,7 @@ use Account\Application\Domain\Exceptions\InvalidDocument;
 
 final readonly class SimpleIdentity implements Document
 {
-    private const PATTERN = '/^\d{11,50}$/';
+    private const string PATTERN = '/^\d{11,50}$/';
 
     private function __construct(private string $number)
     {

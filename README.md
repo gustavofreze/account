@@ -12,7 +12,9 @@
     - [Review](#review)
     - [Reports](#reports)
 * [Environment setup](#environment_setup)
+* [Observability](#observability)
 
+<!--suppress HtmlDeprecatedAttribute -->
 <div id="overview"></div> 
 
 ## Overview
@@ -134,3 +136,13 @@ make show-reports
 | Environment | URL                         | Port | 
 |:------------|:----------------------------|:----:|
 | `Local`     | jdbc:mysql://localhost:3307 | 3307 |
+
+<div id='observability'></div> 
+
+## Observability
+
+You can access the application logs using the following command:
+
+```bash
+make show-logs
+```

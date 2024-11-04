@@ -10,7 +10,7 @@ use Account\Application\Domain\Models\Transaction\TransactionId;
 
 final readonly class PurchaseWithInstallments implements Transaction
 {
-    private const DEFAULT_INSTALLMENTS = 1;
+    private const int DEFAULT_INSTALLMENTS = 1;
 
     private function __construct(private TransactionId $id, private NegativeAmount $amount, public int $installments)
     {

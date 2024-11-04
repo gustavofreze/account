@@ -13,7 +13,7 @@ use Slim\Psr7\Stream;
 
 final class RequestFactory
 {
-    private const LOCALHOST = 'account.localhost';
+    private const string LOCALHOST = 'account.localhost';
 
     public static function getFrom(string $path, array $parameters): ServerRequestInterface
     {
