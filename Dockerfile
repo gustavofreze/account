@@ -20,6 +20,7 @@ WORKDIR /var/www/html
 COPY ./ /var/www/html
 COPY ./config/database /database
 COPY ./entrypoint.sh /entrypoint.sh
+COPY ./config/php/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 RUN chmod +x /entrypoint.sh
 

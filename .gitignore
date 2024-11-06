@@ -2,5 +2,6 @@
 *.lock
 .phpunit.*
 
+logs
 vendor
 report
