@@ -1,10 +1,10 @@
 {
     "name": "gustavofreze/account",
-    "description": "Service responsible for managing account transactions.",
     "type": "project",
     "license": "MIT",
-    "minimum-stability": "stable",
+    "description": "Service responsible for managing account transactions.",
     "prefer-stable": true,
+    "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
             "Account\\": "src/"

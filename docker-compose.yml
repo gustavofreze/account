@@ -20,7 +20,7 @@ services:
     environment:
       TZ: "America/Sao_Paulo"
       MYSQL_ROOT_PASSWORD: "root"
-    command: --default-authentication-plugin=caching_sha2_password
+    command: --default-authentication-plugin=caching_sha2_password --host-cache-size=0 --pid-file=/var/lib/mysql/mysqld.pid
     volumes:
       - ./config/database/mysql:/scripts/config
 

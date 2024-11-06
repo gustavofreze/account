@@ -15,9 +15,9 @@ PHP_IMAGE = gustavofreze/php:8.3
 FLYWAY_IMAGE = flyway/flyway:10.20.1
 
 APP_RUN = docker run ${PLATFORM} -u root --rm -it -v ${PWD}:/app -w /app ${PHP_IMAGE}
-APP_TEST_RUN = docker run ${PLATFORM} -u root --rm -it --name account-test -v ${PWD}:/app -w /app ${PHP_IMAGE}
-FLYWAY_RUN = docker run ${PLATFORM} --rm -v ${PWD}/config/database/mysql/migrations:/flyway/sql --env-file=config/local.env ${FLYWAY_IMAGE}
+APP_TEST_RUN = docker run ${PLATFORM} -u root --rm -it --name account-test --link account-adm --network=account_default -v ${PWD}:/app -w /app ${PHP_IMAGE}
 
+FLYWAY_RUN = docker run ${PLATFORM} --rm -v ${PWD}/config/database/mysql/migrations:/flyway/sql --env-file=config/local.env --network=account_default ${FLYWAY_IMAGE}
 MIGRATE_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm -connectRetries=15
 MIGRATE_TEST_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm_test -connectRetries=15
 
