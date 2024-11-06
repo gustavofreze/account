@@ -4,13 +4,20 @@ else
     PWD := $(shell pwd -L)
 endif
 
+ARCH := $(shell uname -m)
+PLATFORM :=
+
+ifeq ($(ARCH),arm64)
+    PLATFORM := --platform=linux/amd64
+endif
+
 PHP_IMAGE = gustavofreze/php:8.3
 FLYWAY_IMAGE = flyway/flyway:10.20.1
 
-APP_RUN = docker run -u root --rm -it --network=host -v ${PWD}:/app -w /app ${PHP_IMAGE}
-APP_TEST_RUN = docker run -u root --rm -it --name account-test --link account-adm --network=account_default -v ${PWD}:/app -w /app ${PHP_IMAGE}
+APP_RUN = docker run ${PLATFORM} -u root --rm -it -v ${PWD}:/app -w /app ${PHP_IMAGE}
+APP_TEST_RUN = docker run ${PLATFORM} -u root --rm -it --name account-test -v ${PWD}:/app -w /app ${PHP_IMAGE}
+FLYWAY_RUN = docker run ${PLATFORM} --rm -v ${PWD}/config/database/mysql/migrations:/flyway/sql --env-file=config/local.env ${FLYWAY_IMAGE}
 
-FLYWAY_RUN = docker run --rm -v ${PWD}/config/database/mysql/migrations:/flyway/sql --env-file=config/local.env --network=account_default ${FLYWAY_IMAGE}
 MIGRATE_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm -connectRetries=15
 MIGRATE_TEST_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm_test -connectRetries=15
 
@@ -18,10 +25,10 @@ MIGRATE_TEST_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=accou
 .PHONY: start stop configure migrate-database clean-database migrate-test-database test test-no-coverage review show-reports help show-logs
 
 start: ## Start application containers
-	@docker-compose up -d --build
+	@docker compose up -d --build
 
 stop: ## Stop application containers
-	@docker-compose down
+	@docker compose down
 
 configure: ## Configure development environment
 	@${APP_RUN} composer update --optimize-autoloader
