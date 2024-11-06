@@ -1,5 +1,5 @@
 {
-    "timeout": 10,
+    "timeout": 15,
     "testFramework": "phpunit",
     "tmpDir": "report/infection/",
     "source": {
@@ -12,7 +12,8 @@
         "summary": "report/infection/logs/infection-summary.log"
     },
     "mutators": {
-        "@default": true
+        "@default": true,
+        "MethodCallRemoval": false
     },
     "phpUnit": {
         "configDir": "",

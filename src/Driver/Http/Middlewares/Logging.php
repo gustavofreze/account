@@ -22,7 +22,6 @@ final readonly class Logging implements MiddlewareInterface
         $this->logger->logInfo(key: 'http_request', context: [
             'uri'     => $request->getUri()->__toString(),
             'method'  => $request->getMethod(),
-            'headers' => $request->getHeaders(),
             'payload' => $request->getParsedBody()
         ]);
 

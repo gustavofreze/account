@@ -153,7 +153,6 @@ final class LoggingTest extends TestCase
 
         self::assertStringContainsString('uri', $firstInfoOutputOrAt);
         self::assertStringContainsString('method', $firstInfoOutputOrAt);
-        self::assertStringContainsString('headers', $firstInfoOutputOrAt);
         self::assertStringContainsString('payload', $firstInfoOutputOrAt);
         self::assertStringContainsString('key=http_request', $firstInfoOutputOrAt);
         self::assertStringContainsString($request->getUri()->__toString(), $firstInfoOutputOrAt);
