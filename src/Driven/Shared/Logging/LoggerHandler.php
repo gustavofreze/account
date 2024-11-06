@@ -16,7 +16,7 @@ final readonly class LoggerHandler implements Logger
 {
     use LoggerTrait;
 
-    private const string LOG_TEMPLATE = "%s component=%s type=%s key=%s data=%s \n";
+    private const string LOG_TEMPLATE = "%s component=%s type=%s key=%s data=%s\n";
 
     private string $component;
 
