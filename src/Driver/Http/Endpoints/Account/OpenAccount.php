@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Account\Driver\Http\Endpoints\Account;
 
-use Account\Application\Domain\Ports\Inbound\AccountOpening;
+use Account\Application\Ports\Inbound\AccountOpening;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;

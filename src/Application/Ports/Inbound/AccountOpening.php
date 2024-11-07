@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Account\Application\Domain\Ports\Inbound;
+namespace Account\Application\Ports\Inbound;
 
-use Account\Application\Domain\Commands\OpenAccount;
+use Account\Application\Commands\OpenAccount;
 
 /**
  * Handles account opening requests by processing the specified command.

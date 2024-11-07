@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Test\Integration\Application\Domain\Handlers;
+namespace Test\Integration\Application\Handlers;
 
-use Account\Application\Domain\Commands\CreditAccount;
+use Account\Application\Commands\CreditAccount;
 use Account\Application\Domain\Exceptions\AccountNotFound;
 use Account\Application\Domain\Models\Account\Account;
 use Account\Application\Domain\Models\Account\AccountId;
@@ -12,8 +12,8 @@ use Account\Application\Domain\Models\Account\Documents\SimpleIdentity;
 use Account\Application\Domain\Models\Account\Holder;
 use Account\Application\Domain\Models\Transaction\Amounts\PositiveAmount;
 use Account\Application\Domain\Models\Transaction\Operations\CreditVoucher;
-use Account\Application\Domain\Ports\Inbound\AccountCrediting;
-use Account\Application\Domain\Ports\Outbound\Accounts;
+use Account\Application\Ports\Inbound\AccountCrediting;
+use Account\Application\Ports\Outbound\Accounts;
 use Account\Driven\Shared\Database\RelationalConnection;
 use Test\Integration\Application\Repository;
 use Test\Integration\IntegrationTestCase;

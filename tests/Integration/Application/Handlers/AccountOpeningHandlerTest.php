@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Test\Integration\Application\Domain\Handlers;
+namespace Test\Integration\Application\Handlers;
 
-use Account\Application\Domain\Commands\OpenAccount;
+use Account\Application\Commands\OpenAccount;
 use Account\Application\Domain\Exceptions\AccountAlreadyExists;
 use Account\Application\Domain\Models\Account\Account;
 use Account\Application\Domain\Models\Account\AccountId;
 use Account\Application\Domain\Models\Account\Documents\SimpleIdentity;
 use Account\Application\Domain\Models\Account\Holder;
-use Account\Application\Domain\Ports\Inbound\AccountOpening;
-use Account\Application\Domain\Ports\Outbound\Accounts;
+use Account\Application\Ports\Inbound\AccountOpening;
+use Account\Application\Ports\Outbound\Accounts;
 use Test\Integration\IntegrationTestCase;
 
 final class AccountOpeningHandlerTest extends IntegrationTestCase

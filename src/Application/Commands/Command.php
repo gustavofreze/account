@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Account\Application\Domain\Commands;
+namespace Account\Application\Commands;
 
 /**
  * Commands encapsulate specific actions or intentions within the application,
