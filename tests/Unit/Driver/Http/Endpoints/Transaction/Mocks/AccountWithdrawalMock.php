@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Account\Driver\Http\Endpoints\Transaction\Mocks;
 
-use Account\Application\Domain\Commands\RequestWithdrawal;
+use Account\Application\Commands\RequestWithdrawal;
 use Account\Application\Domain\Exceptions\AccountNotFound;
-use Account\Application\Domain\Ports\Inbound\AccountWithdrawal;
+use Account\Application\Ports\Inbound\AccountWithdrawal;
 
 final class AccountWithdrawalMock implements AccountWithdrawal
 {

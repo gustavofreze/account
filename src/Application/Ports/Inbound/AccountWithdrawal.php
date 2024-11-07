@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Account\Application\Domain\Ports\Inbound;
+namespace Account\Application\Ports\Inbound;
 
-use Account\Application\Domain\Commands\RequestWithdrawal;
+use Account\Application\Commands\RequestWithdrawal;
 
 /**
  * Handles withdrawal requests for an account by processing the specified command.

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Account\Driver\Http\Endpoints\Account;
 
-use Account\Application\Domain\Commands\OpenAccount;
+use Account\Application\Commands\OpenAccount;
 use Account\Application\Domain\Models\Account\AccountId;
 use Account\Application\Domain\Models\Account\Documents\SimpleIdentity;
 use Account\Application\Domain\Models\Account\Holder;

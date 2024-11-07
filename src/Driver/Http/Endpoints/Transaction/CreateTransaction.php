@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Account\Driver\Http\Endpoints\Transaction;
 
-use Account\Application\Domain\Ports\Inbound\AccountCrediting;
-use Account\Application\Domain\Ports\Inbound\AccountDebiting;
-use Account\Application\Domain\Ports\Inbound\AccountWithdrawal;
+use Account\Application\Ports\Inbound\AccountCrediting;
+use Account\Application\Ports\Inbound\AccountDebiting;
+use Account\Application\Ports\Inbound\AccountWithdrawal;
 use Account\Driver\Http\Endpoints\Transaction\Factories\UseCaseFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
