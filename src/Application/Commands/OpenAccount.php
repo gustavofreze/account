@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Account\Application\Domain\Commands;
+namespace Account\Application\Commands;
 
 use Account\Application\Domain\Models\Account\AccountId;
 use Account\Application\Domain\Models\Account\Holder;

@@ -9,7 +9,7 @@ use Account\Application\Domain\Models\Account\AccountId;
 use Account\Application\Domain\Models\Account\Balance;
 use Account\Application\Domain\Models\Account\Holder;
 use Account\Application\Domain\Models\Transaction\Transaction;
-use Account\Application\Domain\Ports\Outbound\Accounts;
+use Account\Application\Ports\Outbound\Accounts;
 use Account\Driven\Account\OperationType;
 use Account\Driven\Account\Repository\Records\AccountRecord;
 use Account\Driven\Account\Repository\Records\BalanceRecord;

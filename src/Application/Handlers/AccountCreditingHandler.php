@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Account\Application\Domain\Handlers;
+namespace Account\Application\Handlers;
 
-use Account\Application\Domain\Commands\CreditAccount;
+use Account\Application\Commands\CreditAccount;
 use Account\Application\Domain\Exceptions\AccountNotFound;
-use Account\Application\Domain\Ports\Inbound\AccountCrediting;
-use Account\Application\Domain\Ports\Outbound\Accounts;
+use Account\Application\Ports\Inbound\AccountCrediting;
+use Account\Application\Ports\Outbound\Accounts;
 
 final readonly class AccountCreditingHandler implements AccountCrediting
 {

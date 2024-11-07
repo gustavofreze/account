@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Test\Integration\Application\Domain\Handlers;
+namespace Test\Integration\Application\Handlers;
 
-use Account\Application\Domain\Commands\DebitAccount;
+use Account\Application\Commands\DebitAccount;
 use Account\Application\Domain\Exceptions\AccountNotFound;
 use Account\Application\Domain\Exceptions\InsufficientFunds;
 use Account\Application\Domain\Models\Account\Account;
@@ -16,8 +16,8 @@ use Account\Application\Domain\Models\Transaction\Amounts\PositiveAmount;
 use Account\Application\Domain\Models\Transaction\Operations\CreditVoucher;
 use Account\Application\Domain\Models\Transaction\Operations\NormalPurchase;
 use Account\Application\Domain\Models\Transaction\Operations\PurchaseWithInstallments;
-use Account\Application\Domain\Ports\Inbound\AccountDebiting;
-use Account\Application\Domain\Ports\Outbound\Accounts;
+use Account\Application\Ports\Inbound\AccountDebiting;
+use Account\Application\Ports\Outbound\Accounts;
 use Account\Driven\Shared\Database\RelationalConnection;
 use Test\Integration\Application\Repository;
 use Test\Integration\IntegrationTestCase;

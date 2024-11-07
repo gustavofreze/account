@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Account\Application\Domain\Ports\Outbound;
+namespace Account\Application\Ports\Outbound;
 
 use Account\Application\Domain\Models\Account\Account;
 use Account\Application\Domain\Models\Account\AccountId;

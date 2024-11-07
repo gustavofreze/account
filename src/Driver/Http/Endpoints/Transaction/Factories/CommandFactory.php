@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Account\Driver\Http\Endpoints\Transaction\Factories;
 
-use Account\Application\Domain\Commands\Command;
-use Account\Application\Domain\Commands\CreditAccount;
-use Account\Application\Domain\Commands\DebitAccount;
-use Account\Application\Domain\Commands\RequestWithdrawal;
+use Account\Application\Commands\Command;
+use Account\Application\Commands\CreditAccount;
+use Account\Application\Commands\DebitAccount;
+use Account\Application\Commands\RequestWithdrawal;
 use Account\Application\Domain\Models\Account\AccountId;
 use Account\Driven\Account\OperationType;
 use InvalidArgumentException;

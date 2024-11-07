@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Account\Driver\Http\Endpoints\Transaction;
 
-use Account\Application\Domain\Commands\Command;
+use Account\Application\Commands\Command;
 use Account\Driver\Http\Endpoints\InvalidRequest;
 use Account\Driver\Http\Endpoints\Transaction\Factories\CommandFactory;
 use Respect\Validation\Exceptions\NestedValidationException;

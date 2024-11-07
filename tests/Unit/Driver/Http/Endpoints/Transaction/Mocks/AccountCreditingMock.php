@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Account\Driver\Http\Endpoints\Transaction\Mocks;
 
-use Account\Application\Domain\Commands\CreditAccount;
-use Account\Application\Domain\Ports\Inbound\AccountCrediting;
+use Account\Application\Commands\CreditAccount;
+use Account\Application\Ports\Inbound\AccountCrediting;
 use PHPUnit\Framework\MockObject\Generator\RuntimeException;
 
 final class AccountCreditingMock implements AccountCrediting

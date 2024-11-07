@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Account\Driver\Http\Endpoints\Account\Mocks;
 
-use Account\Application\Domain\Commands\OpenAccount;
+use Account\Application\Commands\OpenAccount;
 use Account\Application\Domain\Exceptions\AccountAlreadyExists;
-use Account\Application\Domain\Ports\Inbound\AccountOpening;
+use Account\Application\Ports\Inbound\AccountOpening;
 use PHPUnit\Framework\MockObject\Generator\RuntimeException;
 
 final class AccountOpeningMock implements AccountOpening

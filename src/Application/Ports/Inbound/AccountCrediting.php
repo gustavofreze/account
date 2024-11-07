@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Account\Application\Domain\Ports\Inbound;
+namespace Account\Application\Ports\Inbound;
 
-use Account\Application\Domain\Commands\CreditAccount;
+use Account\Application\Commands\CreditAccount;
 
 /**
  * Handles account crediting requests by processing the specified command.

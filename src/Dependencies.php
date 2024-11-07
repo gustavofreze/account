@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Account;
 
-use Account\Application\Domain\Handlers\AccountCreditingHandler;
-use Account\Application\Domain\Handlers\AccountDebitingHandler;
-use Account\Application\Domain\Handlers\AccountOpeningHandler;
-use Account\Application\Domain\Handlers\AccountWithdrawalHandler;
-use Account\Application\Domain\Ports\Inbound\AccountCrediting;
-use Account\Application\Domain\Ports\Inbound\AccountDebiting;
-use Account\Application\Domain\Ports\Inbound\AccountOpening;
-use Account\Application\Domain\Ports\Inbound\AccountWithdrawal;
-use Account\Application\Domain\Ports\Outbound\Accounts;
+use Account\Application\Handlers\AccountCreditingHandler;
+use Account\Application\Handlers\AccountDebitingHandler;
+use Account\Application\Handlers\AccountOpeningHandler;
+use Account\Application\Handlers\AccountWithdrawalHandler;
+use Account\Application\Ports\Inbound\AccountCrediting;
+use Account\Application\Ports\Inbound\AccountDebiting;
+use Account\Application\Ports\Inbound\AccountOpening;
+use Account\Application\Ports\Inbound\AccountWithdrawal;
+use Account\Application\Ports\Outbound\Accounts;
 use Account\Driven\Account\Repository\Adapter as AccountsAdapter;
 use Account\Driven\Shared\Database\MySql\MySqlEngine;
 use Account\Driven\Shared\Database\RelationalConnection;
@@ -43,10 +43,10 @@ final class Dependencies
         return [
             Logger::class               => static function () {
                 $logger = new MonoLogger(name: 'StreamLogger');
-                $formatter = new LineFormatter('%message%');
-                $streamHandler = new StreamHandler('php://stdout');
-                $streamHandler->setFormatter($formatter);
-                $logger->pushHandler($streamHandler);
+                $formatter = (new LineFormatter(format: '%message%'))->allowInlineLineBreaks();
+                $streamHandler = new StreamHandler(stream: 'php://stdout');
+                $streamHandler->setFormatter(formatter: $formatter);
+                $logger->pushHandler(handler: $streamHandler);
                 $obfuscators = Obfuscators::createFrom(elements: [new SimpleIdentity()]);
 
                 return new LoggerHandler(logger: $logger, obfuscators: $obfuscators);
