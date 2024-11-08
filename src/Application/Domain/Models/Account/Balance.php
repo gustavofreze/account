@@ -24,6 +24,6 @@ final readonly class Balance
         $debitAmount = BigDecimal::fromFloat(value: $amount->toFloat(), scale: $amount::SCALE);
         $updatedAmount = $this->amount->subtract(subtrahend: $debitAmount->absolute());
 
-        return $updatedAmount->isPositive();
+        return !$updatedAmount->isNegative();
     }
 }
