@@ -57,9 +57,7 @@ jobs:
 
       - name: Run tests
         run: |
-          docker run -u root --rm -it \
-            --name account-test \
-            --network=account_default \
+          docker run -u root --name account-test --network=account_default \
             -v ${PWD}:/app \
             -v ${PWD}/config/database/mysql/migrations:/account-adm-migrations \
             -v /var/run/docker.sock:/var/run/docker.sock \
