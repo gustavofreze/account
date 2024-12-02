@@ -6,6 +6,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PHP_VERSION: '8.3'
+
 jobs:
   auto-review:
     name: Auto review
@@ -18,7 +21,7 @@ jobs:
       - name: Configure PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: ${{ env.PHP_VERSION }}
 
       - name: Install dependencies
         run: composer update --no-progress --optimize-autoloader
@@ -37,12 +40,27 @@ jobs:
       - name: Configure PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: ${{ env.PHP_VERSION }}
 
       - name: Install dependencies
         run: composer update --no-progress --optimize-autoloader
 
+      - name: Clean up Docker
+        run: docker system prune -f
+
+      - name: Create Docker network
+        run: docker network create account_default
+
+      - name: Create Docker volume for migrations
+        run: docker volume create account-adm-migrations
+
       - name: Run tests
-        env:
-          XDEBUG_MODE: coverage
-        run: composer unit-test
+        run: |
+          docker run -u root --rm -it \
+            --name account-test \
+            --network=account_default \
+            -v ${PWD}:/app \
+            -v ${PWD}/config/database/mysql/migrations:/account-adm-migrations \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -w /app \
+            gustavofreze/php:${{ env.PHP_VERSION }} bash -c "composer tests"
