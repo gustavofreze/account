@@ -1,5 +1,5 @@
 {
-    "timeout": 15,
+    "timeout": 400,
     "testFramework": "phpunit",
     "tmpDir": "report/infection/",
     "source": {
