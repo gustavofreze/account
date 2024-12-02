@@ -15,14 +15,20 @@ PHP_IMAGE = gustavofreze/php:8.3
 FLYWAY_IMAGE = flyway/flyway:10.20.1
 
 APP_RUN = docker run ${PLATFORM} -u root --rm -it -v ${PWD}:/app -w /app ${PHP_IMAGE}
-APP_TEST_RUN = docker run ${PLATFORM} -u root --rm -it --name account-test --link account-adm --network=account_default -v ${PWD}:/app -w /app ${PHP_IMAGE}
+APP_TEST_RUN = docker run ${PLATFORM} -u root --rm -it \
+    --name account-test \
+    --network=account_default \
+    -v ${PWD}:/app \
+    -v ${PWD}/config/database/mysql/migrations:/account-adm-migrations \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -w /app \
+    ${PHP_IMAGE}
 
 FLYWAY_RUN = docker run ${PLATFORM} --rm -v ${PWD}/config/database/mysql/migrations:/flyway/sql --env-file=config/local.env --network=account_default ${FLYWAY_IMAGE}
 MIGRATE_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm -connectRetries=15
-MIGRATE_TEST_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm_test -connectRetries=15
 
 .DEFAULT_GOAL := help
-.PHONY: start stop configure migrate-database clean-database migrate-test-database test test-no-coverage review show-reports help show-logs
+.PHONY: start stop configure create-volume migrate-database clean-database test test-no-coverage review show-reports help show-logs
 
 start: ## Start application containers
 	@docker compose up -d --build
@@ -33,10 +39,10 @@ stop: ## Stop application containers
 configure: ## Configure development environment
 	@${APP_RUN} composer update --optimize-autoloader
 
-test: migrate-test-database ## Run all tests with coverage
+test: create-volume ## Run all tests with coverage
 	@${APP_TEST_RUN} composer run tests
 
-test-no-coverage: migrate-test-database ## Run all tests without coverage
+test-no-coverage: create-volume ## Run all tests without coverage
 	@${APP_TEST_RUN} composer run tests-no-coverage
 
 review: ## Run static code analysis
@@ -45,14 +51,14 @@ review: ## Run static code analysis
 show-reports: ## Open static analysis reports (e.g., coverage, lints) in the browser
 	@sensible-browser report/coverage/coverage-html/index.html report/coverage/mutation-report.html
 
+create-volume: ## Create database migrations volume
+	@docker volume create account-adm-migrations
+
 migrate-database: ## Run database migrations
 	@${MIGRATE_DB} migrate
 
 clean-database: ## Clean database
 	@${MIGRATE_DB} clean
-
-migrate-test-database: ## Run test database migrations
-	@${MIGRATE_TEST_DB} migrate
 
 show-logs: ## Display application logs
 	@docker logs -f account
