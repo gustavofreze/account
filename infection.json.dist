@@ -1,22 +1,24 @@
 {
-    "timeout": 400,
-    "testFramework": "phpunit",
+    "logs": {
+        "text": "report/infection/logs/infection-text.log",
+        "summary": "report/infection/logs/infection-summary.log"
+    },
     "tmpDir": "report/infection/",
+    "minMsi": 100,
+    "timeout": 90,
     "source": {
         "directories": [
             "src"
         ]
     },
-    "logs": {
-        "text": "report/infection/logs/infection-text.log",
-        "summary": "report/infection/logs/infection-summary.log"
+    "phpUnit": {
+        "configDir": "",
+        "customPath": "./vendor/bin/phpunit"
     },
     "mutators": {
         "@default": true,
         "MethodCallRemoval": false
     },
-    "phpUnit": {
-        "configDir": "",
-        "customPath": "./vendor/bin/phpunit"
-    }
+    "minCoveredMsi": 100,
+    "testFramework": "phpunit"
 }

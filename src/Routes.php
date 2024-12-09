@@ -22,6 +22,7 @@ use Psr\Container\NotFoundExceptionInterface;
 use Slim\App;
 use Slim\Handlers\Strategies\RequestResponseArgs;
 use Slim\Interfaces\RouteCollectorProxyInterface;
+use TinyBlocks\EnvironmentVariable\EnvironmentVariable;
 use TinyBlocks\Http\HttpCode;
 
 final class Routes
@@ -49,7 +50,7 @@ final class Routes
     public function register(): void
     {
         $this->app->any('/', fn($request, $response) => $response
-            ->withHeader('Location', Environment::get(variable: 'SOURCE')->toString())
+            ->withHeader('Location', EnvironmentVariable::from(name: 'SOURCE')->toString())
             ->withStatus(HttpCode::FOUND->value));
 
         $this->app->group('/accounts', function (RouteCollectorProxyInterface $route) {
