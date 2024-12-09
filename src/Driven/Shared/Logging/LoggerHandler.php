@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Account\Driven\Shared\Logging;
 
 use Account\Driven\Shared\Logging\Obfuscator\Obfuscators;
-use Account\Environment;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 use Psr\Log\LogLevel;
+use TinyBlocks\EnvironmentVariable\EnvironmentVariable;
 
 final readonly class LoggerHandler implements Logger
 {
@@ -22,7 +22,7 @@ final readonly class LoggerHandler implements Logger
 
     public function __construct(private LoggerInterface $logger, private Obfuscators $obfuscators)
     {
-        $this->component = Environment::get(variable: 'APP_NAME')->toString();
+        $this->component = EnvironmentVariable::from(name: 'APP_NAME')->toString();
     }
 
     public function logInfo(string $key, array $context = []): void

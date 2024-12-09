@@ -28,6 +28,7 @@
         "respect/validation": "^2.3",
         "php-di/slim-bridge": "^3.4",
         "tiny-blocks/collection": "^1",
+        "tiny-blocks/environment-variable": "^1",
         "ext-pdo": "*"
     },
     "require-dev": {
@@ -35,24 +36,23 @@
         "phpstan/phpstan": "^1",
         "phpunit/phpunit": "^11",
         "dg/bypass-finals": "^1.8",
-        "infection/infection": "^0.29",
-        "squizlabs/php_codesniffer": "^3.10",
+        "infection/infection": "^0",
+        "squizlabs/php_codesniffer": "^3",
         "tiny-blocks/docker-container": "^1"
     },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
             "infection/extension-installer": true
-        },
-        "process-timeout": 400
+        }
     },
     "scripts": {
-        "test": "phpunit -c phpunit.xml --log-junit=report/coverage/junit.xml --coverage-xml=report/coverage/coverage-xml --coverage-html=report/coverage/coverage-html tests",
+        "test": "RUN_MIGRATIONS=1 phpunit --configuration phpunit.xml tests",
         "phpcs": "phpcs --standard=PSR12 --extensions=php ./src",
         "phpmd": "phpmd ./src text phpmd.xml --suffixes php --exclude /src/Routes.php --ignore-violations-on-exit",
         "phpstan": "phpstan analyse -c phpstan.neon.dist --quiet --no-progress",
-        "mutation-test": "infection --only-covered --logger-html=report/coverage/mutation-report.html --coverage=report/coverage --min-msi=100 --min-covered-msi=100 --threads=4",
-        "test-no-coverage": "phpunit -c phpunit.xml --no-coverage tests",
+        "mutation-test": "infection --only-covered --threads=max --logger-html=report/coverage/mutation-report.html --coverage=report/coverage",
+        "test-no-coverage": "RUN_MIGRATIONS=1 phpunit --configuration phpunit.xml --no-coverage tests",
         "review": [
             "@phpcs",
             "@phpmd",

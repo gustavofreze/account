@@ -12,12 +12,12 @@ ifeq ($(ARCH),arm64)
 endif
 
 PHP_IMAGE = gustavofreze/php:8.3
-FLYWAY_IMAGE = flyway/flyway:10.20.1
+FLYWAY_IMAGE = flyway/flyway:11.0.1
 
 APP_RUN = docker run ${PLATFORM} -u root --rm -it -v ${PWD}:/app -w /app ${PHP_IMAGE}
 APP_TEST_RUN = docker run ${PLATFORM} -u root --rm -it \
     --name account-test \
-    --network=account_default \
+    --network=account-test_default \
     -v ${PWD}:/app \
     -v ${PWD}/config/database/mysql/migrations:/account-adm-migrations \
     -v /var/run/docker.sock:/var/run/docker.sock \
@@ -28,7 +28,7 @@ FLYWAY_RUN = docker run ${PLATFORM} --rm -v ${PWD}/config/database/mysql/migrati
 MIGRATE_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm -connectRetries=15
 
 .DEFAULT_GOAL := help
-.PHONY: start stop configure create-volume migrate-database clean-database test test-no-coverage review show-reports help show-logs
+.PHONY: start stop configure test test-no-coverage review show-reports configure-test-environment migrate-database clean-database show-logs help
 
 start: ## Start application containers
 	@docker compose up -d --build
@@ -39,10 +39,10 @@ stop: ## Stop application containers
 configure: ## Configure development environment
 	@${APP_RUN} composer update --optimize-autoloader
 
-test: create-volume ## Run all tests with coverage
+test: configure-test-environment ## Run all tests with coverage
 	@${APP_TEST_RUN} composer run tests
 
-test-no-coverage: create-volume ## Run all tests without coverage
+test-no-coverage: configure-test-environment ## Run all tests without coverage
 	@${APP_TEST_RUN} composer run tests-no-coverage
 
 review: ## Run static code analysis
@@ -51,8 +51,11 @@ review: ## Run static code analysis
 show-reports: ## Open static analysis reports (e.g., coverage, lints) in the browser
 	@sensible-browser report/coverage/coverage-html/index.html report/coverage/mutation-report.html
 
-create-volume: ## Create database migrations volume
-	@docker volume create account-adm-migrations
+configure-test-environment: ## Configures the test environment
+	@if ! docker network inspect account-test_default > /dev/null 2>&1; then \
+		docker network create account-test_default > /dev/null 2>&1; \
+	fi
+	@docker volume create account-adm-migrations > /dev/null 2>&1
 
 migrate-database: ## Run database migrations
 	@${MIGRATE_DB} migrate
