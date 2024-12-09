@@ -15,7 +15,6 @@
         </include>
         <exclude>
             <file>src/Routes.php</file>
-            <file>src/Environment.php</file>
             <file>src/Dependencies.php</file>
         </exclude>
     </source>
@@ -31,14 +30,15 @@
 
     <coverage>
         <report>
+            <xml outputDirectory="report/coverage/coverage-xml"/>
+            <html outputDirectory="report/coverage/coverage-html"/>
             <text outputFile="report/coverage.txt"/>
-            <html outputDirectory="report/html/"/>
             <clover outputFile="report/coverage-clover.xml"/>
         </report>
     </coverage>
 
     <logging>
-        <junit outputFile="report/execution-result.xml"/>
+        <junit outputFile="report/coverage/junit.xml"/>
     </logging>
 
     <php>

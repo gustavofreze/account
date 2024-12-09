@@ -31,6 +31,7 @@ use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger as MonoLogger;
 use PDO;
+use TinyBlocks\EnvironmentVariable\EnvironmentVariable;
 
 use function DI\autowire;
 use function DI\create;
@@ -54,11 +55,11 @@ final class Dependencies
             Accounts::class             => autowire(AccountsAdapter::class),
             Connection::class           => static fn(): Connection => DriverManager::getConnection([
                 'driver'        => 'pdo_mysql',
-                'host'          => Environment::get(variable: 'DATABASE_HOST')->toString(),
-                'user'          => Environment::get(variable: 'DATABASE_USER')->toString(),
-                'port'          => Environment::get(variable: 'DATABASE_PORT')->toInt(),
-                'dbname'        => Environment::get(variable: 'DATABASE_NAME')->toString(),
-                'password'      => Environment::get(variable: 'DATABASE_PASSWORD')->toString(),
+                'host'          => EnvironmentVariable::from(name: 'DATABASE_HOST')->toString(),
+                'user'          => EnvironmentVariable::from(name: 'DATABASE_USER')->toString(),
+                'port'          => EnvironmentVariable::from(name: 'DATABASE_PORT')->toInteger(),
+                'dbname'        => EnvironmentVariable::from(name: 'DATABASE_NAME')->toString(),
+                'password'      => EnvironmentVariable::from(name: 'DATABASE_PASSWORD')->toString(),
                 'driverOptions' => [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8']
             ], new Configuration()),
             OpenAccount::class          => create(OpenAccount::class)->constructor(get(AccountOpeningHandler::class)),

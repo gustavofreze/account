@@ -50,14 +50,14 @@ jobs:
         run: docker system prune -f
 
       - name: Create Docker network
-        run: docker network create account_default
+        run: docker network create account-test_default
 
       - name: Create Docker volume for migrations
         run: docker volume create account-adm-migrations
 
       - name: Run tests
         run: |
-          docker run -u root --name account-test --network=account_default \
+          docker run -u root --name account-test --network=account-test_default \
             -v ${PWD}:/app \
             -v ${PWD}/config/database/mysql/migrations:/account-adm-migrations \
             -v /var/run/docker.sock:/var/run/docker.sock \
