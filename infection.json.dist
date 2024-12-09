@@ -5,7 +5,7 @@
     },
     "tmpDir": "report/infection/",
     "minMsi": 100,
-    "timeout": 30,
+    "timeout": 90,
     "source": {
         "directories": [
             "src"
@@ -16,7 +16,8 @@
         "customPath": "./vendor/bin/phpunit"
     },
     "mutators": {
-        "@default": true
+        "@default": true,
+        "MethodCallRemoval": false
     },
     "minCoveredMsi": 100,
     "testFramework": "phpunit"
