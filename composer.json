@@ -47,7 +47,7 @@
         }
     },
     "scripts": {
-        "test": "RUN_MIGRATIONS=1 phpunit --configuration phpunit.xml tests",
+        "test": "RUN_MIGRATIONS=1 phpunit -d memory_limit=2G --configuration phpunit.xml tests",
         "phpcs": "phpcs --standard=PSR12 --extensions=php ./src",
         "phpmd": "phpmd ./src text phpmd.xml --suffixes php --exclude /src/Routes.php --ignore-violations-on-exit",
         "phpstan": "phpstan analyse -c phpstan.neon.dist --quiet --no-progress",
