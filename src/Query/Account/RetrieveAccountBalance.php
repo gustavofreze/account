@@ -7,7 +7,7 @@ namespace Account\Query\Account;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TinyBlocks\Http\HttpResponse;
+use TinyBlocks\Http\Response;
 
 final readonly class RetrieveAccountBalance implements RequestHandlerInterface
 {
@@ -28,6 +28,6 @@ final readonly class RetrieveAccountBalance implements RequestHandlerInterface
 
         $balance = $this->query->balanceOf(accountId: $accountId);
 
-        return HttpResponse::ok(data: $balance->toArray());
+        return Response::ok(body: $balance->toArray());
     }
 }

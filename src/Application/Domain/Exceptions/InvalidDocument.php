@@ -12,6 +12,7 @@ final class InvalidDocument extends DomainException
     {
         $template = 'The value <%s> is not a valid %s.';
         $className = $this->getClassNameFrom(class: $class);
+
         parent::__construct(message: sprintf($template, $value, $className));
     }
 

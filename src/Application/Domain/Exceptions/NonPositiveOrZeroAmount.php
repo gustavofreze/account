@@ -12,6 +12,7 @@ final class NonPositiveOrZeroAmount extends DomainException
     {
         $template = 'Amount <%s> is invalid. Amount must be positive or zero.';
         $formattedValue = number_format($value, $scale, '.', '');
+
         parent::__construct(message: sprintf($template, $formattedValue));
     }
 }

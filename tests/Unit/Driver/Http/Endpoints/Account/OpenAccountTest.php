@@ -9,7 +9,7 @@ use Account\Driver\Http\Middlewares\ErrorHandling;
 use Account\RequestFactory;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
-use TinyBlocks\Http\HttpCode;
+use TinyBlocks\Http\Code;
 
 final class OpenAccountTest extends TestCase
 {
@@ -35,7 +35,7 @@ final class OpenAccountTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate success */
-        self::assertSame(HttpCode::CREATED->value, $actual->getStatusCode());
+        self::assertSame(Code::CREATED->value, $actual->getStatusCode());
 
         /** @And the response body should contain a valid account ID */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -55,7 +55,7 @@ final class OpenAccountTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate an internal server error */
-        self::assertSame(HttpCode::INTERNAL_SERVER_ERROR->value, $actual->getStatusCode());
+        self::assertSame(Code::INTERNAL_SERVER_ERROR->value, $actual->getStatusCode());
 
         /** @And the response body should contain the unexpected error message */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -75,7 +75,7 @@ final class OpenAccountTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate failure */
-        self::assertSame(HttpCode::UNPROCESSABLE_ENTITY->value, $actual->getStatusCode());
+        self::assertSame(Code::UNPROCESSABLE_ENTITY->value, $actual->getStatusCode());
 
         /** @And the response body should contain a validation error for the document field */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -95,7 +95,7 @@ final class OpenAccountTest extends TestCase
         );
 
         /** @Then the first response status should indicate success */
-        self::assertSame(HttpCode::CREATED->value, $response->getStatusCode());
+        self::assertSame(Code::CREATED->value, $response->getStatusCode());
 
         /** @And another request is created with the same document */
         $request = RequestFactory::postFrom(payload: $payload);
@@ -104,7 +104,7 @@ final class OpenAccountTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate a conflict */
-        self::assertSame(HttpCode::CONFLICT->value, $actual->getStatusCode());
+        self::assertSame(Code::CONFLICT->value, $actual->getStatusCode());
 
         /** @And the response body should indicate that the account already exists */
         $response = json_decode($actual->getBody()->__toString(), true);
