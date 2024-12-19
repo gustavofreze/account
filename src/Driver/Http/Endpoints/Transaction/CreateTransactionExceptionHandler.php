@@ -10,7 +10,7 @@ use Account\Driver\Http\Endpoints\InvalidRequest;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use TinyBlocks\Http\HttpResponse;
+use TinyBlocks\Http\Response;
 
 final readonly class CreateTransactionExceptionHandler implements ExceptionHandler
 {
@@ -19,12 +19,12 @@ final readonly class CreateTransactionExceptionHandler implements ExceptionHandl
         $error = ['error' => $exception->getMessage()];
 
         return match (get_class($exception)) {
-            InvalidRequest::class,          => HttpResponse::unprocessableEntity(data: [
+            InvalidRequest::class,          => Response::unprocessableEntity(body: [
                 'error' => $exception->getMessages()
             ]),
-            AccountNotFound::class          => HttpResponse::notFound(data: $error),
-            InvalidArgumentException::class => HttpResponse::unprocessableEntity(data: $error),
-            default                         => HttpResponse::internalServerError(data: $error)
+            AccountNotFound::class          => Response::notFound(body: $error),
+            InvalidArgumentException::class => Response::unprocessableEntity(body: $error),
+            default                         => Response::internalServerError(body: $error)
         };
     }
 }

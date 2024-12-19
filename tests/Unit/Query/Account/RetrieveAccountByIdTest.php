@@ -10,7 +10,7 @@ use Account\Query\QueryErrorHandling;
 use Account\RequestFactory;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
-use TinyBlocks\Http\HttpCode;
+use TinyBlocks\Http\Code;
 
 final class RetrieveAccountByIdTest extends TestCase
 {
@@ -45,7 +45,7 @@ final class RetrieveAccountByIdTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate success */
-        self::assertSame(HttpCode::OK->value, $actual->getStatusCode());
+        self::assertSame(Code::OK->value, $actual->getStatusCode());
 
         /** @And the response body should contain the account details */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -66,7 +66,7 @@ final class RetrieveAccountByIdTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate an internal server error */
-        self::assertSame(HttpCode::INTERNAL_SERVER_ERROR->value, $actual->getStatusCode());
+        self::assertSame(Code::INTERNAL_SERVER_ERROR->value, $actual->getStatusCode());
 
         /** @And the response body should contain the unexpected error message */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -86,7 +86,7 @@ final class RetrieveAccountByIdTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate an unprocessable entity */
-        self::assertSame(HttpCode::UNPROCESSABLE_ENTITY->value, $actual->getStatusCode());
+        self::assertSame(Code::UNPROCESSABLE_ENTITY->value, $actual->getStatusCode());
 
         /** @And the response body should contain an InvalidRequest error message */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -106,7 +106,7 @@ final class RetrieveAccountByIdTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate not found */
-        self::assertSame(HttpCode::NOT_FOUND->value, $actual->getStatusCode());
+        self::assertSame(Code::NOT_FOUND->value, $actual->getStatusCode());
 
         /** @And the response body should contain an AccountNotFound error message */
         $response = json_decode($actual->getBody()->__toString(), true);

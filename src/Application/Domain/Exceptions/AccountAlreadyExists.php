@@ -12,6 +12,7 @@ final class AccountAlreadyExists extends DomainException
     public function __construct(Document $document)
     {
         $template = 'An account with document number <%s> already exists.';
+
         parent::__construct(message: sprintf($template, $document->getNumber()));
     }
 }

@@ -9,7 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TinyBlocks\Http\HttpCode;
+use TinyBlocks\Http\Code;
 
 final readonly class Logging implements MiddlewareInterface
 {
@@ -30,7 +30,7 @@ final readonly class Logging implements MiddlewareInterface
         $data = json_decode($response->getBody()->__toString(), true);
         $statusCode = $response->getStatusCode();
 
-        if ($statusCode < HttpCode::BAD_REQUEST->value) {
+        if (Code::isSuccessCode(code: $statusCode)) {
             $this->logger->logInfo(key: 'http_response', context: [
                 'status'  => $statusCode,
                 'payload' => $data

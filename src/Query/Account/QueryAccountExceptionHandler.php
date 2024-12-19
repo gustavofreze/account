@@ -8,7 +8,7 @@ use Account\Query\ExceptionHandler;
 use Account\Query\InvalidRequest;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use TinyBlocks\Http\HttpResponse;
+use TinyBlocks\Http\Response;
 
 final readonly class QueryAccountExceptionHandler implements ExceptionHandler
 {
@@ -17,11 +17,9 @@ final readonly class QueryAccountExceptionHandler implements ExceptionHandler
         $error = ['error' => $exception->getMessage()];
 
         return match (get_class($exception)) {
-            InvalidRequest::class,  => HttpResponse::unprocessableEntity(data: [
-                'error' => $exception->getMessages()
-            ]),
-            AccountNotFound::class, => HttpResponse::notFound(data: $error),
-            default                 => HttpResponse::internalServerError(data: $error)
+            InvalidRequest::class,  => Response::unprocessableEntity(body: ['error' => $exception->getMessages()]),
+            AccountNotFound::class, => Response::notFound(body: $error),
+            default                 => Response::internalServerError(body: $error)
         };
     }
 }
