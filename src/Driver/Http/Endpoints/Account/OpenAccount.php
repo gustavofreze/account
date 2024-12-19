@@ -8,7 +8,7 @@ use Account\Application\Ports\Inbound\AccountOpening;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TinyBlocks\Http\HttpResponse;
+use TinyBlocks\Http\Response;
 
 final readonly class OpenAccount implements RequestHandlerInterface
 {
@@ -24,6 +24,6 @@ final readonly class OpenAccount implements RequestHandlerInterface
 
         $this->useCase->handle(command: $command);
 
-        return HttpResponse::created(data: ['id' => $command->id->toString()]);
+        return Response::created(body: ['id' => $command->id->toString()]);
     }
 }

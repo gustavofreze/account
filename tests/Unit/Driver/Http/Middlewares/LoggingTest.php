@@ -14,8 +14,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Psr7\Uri;
-use TinyBlocks\Http\HttpCode;
-use TinyBlocks\Http\HttpMethod;
+use TinyBlocks\Http\Code;
+use TinyBlocks\Http\Method;
 
 final class LoggingTest extends TestCase
 {
@@ -37,7 +37,7 @@ final class LoggingTest extends TestCase
         $requestHandler = $this->createMock(RequestHandlerInterface::class);
 
         /** @And the request method is POST */
-        $request->method('getMethod')->willReturn(HttpMethod::POST->value);
+        $request->method('getMethod')->willReturn(Method::POST->value);
 
         /** @And the request URI is set to http://account.localhost/transactions */
         $request->method('getUri')->willReturn(new Uri('http', 'account.localhost', 80, '/transactions'));
@@ -53,7 +53,7 @@ final class LoggingTest extends TestCase
         ]);
 
         /** @And the request handler is expected to return a successful response */
-        $response = (new ResponseFactory(statusCode: HttpCode::NO_CONTENT->value, data: []))->build();
+        $response = (new ResponseFactory(statusCode: Code::NO_CONTENT->value, data: []))->build();
         $requestHandler->method('handle')->willReturn($response);
 
         /** @When the middleware processes the request */
@@ -87,7 +87,7 @@ final class LoggingTest extends TestCase
         $requestHandler = $this->createMock(RequestHandlerInterface::class);
 
         /** @And the request method is POST */
-        $request->method('getMethod')->willReturn(HttpMethod::POST->value);
+        $request->method('getMethod')->willReturn(Method::POST->value);
 
         /** @And the request URI is set to http://account.localhost/transactions */
         $request->method('getUri')->willReturn(new Uri('http', 'account.localhost', 80, '/transactions'));
@@ -128,7 +128,7 @@ final class LoggingTest extends TestCase
         $requestHandler = $this->createMock(RequestHandlerInterface::class);
 
         /** @And the request method is GET */
-        $request->method('getMethod')->willReturn(HttpMethod::GET->value);
+        $request->method('getMethod')->willReturn(Method::GET->value);
 
         /** @And the request URI is set to http://account.localhost/accounts/cb87522e-f139-4f2b-b55b-0204ef9a6f77 */
         $request->method('getUri')->willReturn(
@@ -139,7 +139,7 @@ final class LoggingTest extends TestCase
         $request->method('getHeaders')->willReturn(['Content-Type' => ['application/json']]);
 
         /** @And the request handler is expected to return a successful response */
-        $response = (new ResponseFactory(statusCode: HttpCode::OK->value, data: [
+        $response = (new ResponseFactory(statusCode: Code::OK->value, data: [
             'id'     => 'cb87522e-f139-4f2b-b55b-0204ef9a6f77',
             'holder' => ['document' => '761692090043414114']
         ]))->build();
@@ -176,7 +176,7 @@ final class LoggingTest extends TestCase
         $requestHandler = $this->createMock(RequestHandlerInterface::class);
 
         /** @And the request method is GET */
-        $request->method('getMethod')->willReturn(HttpMethod::GET->value);
+        $request->method('getMethod')->willReturn(Method::GET->value);
 
         /** @And the request URI is set to http://account.localhost/accounts/e2e1cbfc-a2bd-42a2-a519-d269826f90ed */
         $request->method('getUri')->willReturn(
@@ -210,15 +210,15 @@ final class LoggingTest extends TestCase
     {
         return [
             'Bad Request'           => [
-                'httpCode' => HttpCode::BAD_REQUEST->value,
+                'httpCode' => Code::BAD_REQUEST->value,
                 'message'  => 'Bad Request'
             ],
             'Not Found'             => [
-                'httpCode' => HttpCode::NOT_FOUND->value,
+                'httpCode' => Code::NOT_FOUND->value,
                 'message'  => 'Not Found'
             ],
             'Internal Server Error' => [
-                'httpCode' => HttpCode::INTERNAL_SERVER_ERROR->value,
+                'httpCode' => Code::INTERNAL_SERVER_ERROR->value,
                 'message'  => 'Internal Server Error'
             ]
         ];
@@ -228,7 +228,7 @@ final class LoggingTest extends TestCase
     {
         return [
             'Account Not Found' => [
-                'httpCode' => HttpCode::NOT_FOUND->value,
+                'httpCode' => Code::NOT_FOUND->value,
                 'message'  => 'Account with ID e2e1cbfc-a2bd-42a2-a519-d269826f90ed not found.'
             ]
         ];

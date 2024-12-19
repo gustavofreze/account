@@ -13,7 +13,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Monolog\Test\TestCase;
 use Ramsey\Uuid\Uuid;
-use TinyBlocks\Http\HttpCode;
+use TinyBlocks\Http\Code;
 
 final class RetrieveAccountTransactionsTest extends TestCase
 {
@@ -69,7 +69,7 @@ final class RetrieveAccountTransactionsTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate success */
-        self::assertSame(HttpCode::OK->value, $actual->getStatusCode());
+        self::assertSame(Code::OK->value, $actual->getStatusCode());
 
         /** @And the response body should contain the transactions */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -108,7 +108,7 @@ final class RetrieveAccountTransactionsTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate success */
-        self::assertSame(HttpCode::OK->value, $actual->getStatusCode());
+        self::assertSame(Code::OK->value, $actual->getStatusCode());
 
         /** @And the response body should be an empty array */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -148,7 +148,7 @@ final class RetrieveAccountTransactionsTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate success */
-        self::assertSame(HttpCode::OK->value, $actual->getStatusCode());
+        self::assertSame(Code::OK->value, $actual->getStatusCode());
 
         /** @And the response body should contain the transaction */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -180,7 +180,7 @@ final class RetrieveAccountTransactionsTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate not found */
-        self::assertSame(HttpCode::NOT_FOUND->value, $actual->getStatusCode());
+        self::assertSame(Code::NOT_FOUND->value, $actual->getStatusCode());
 
         /** @And the response body should contain an AccountNotFound error message */
         $response = json_decode($actual->getBody()->__toString(), true);

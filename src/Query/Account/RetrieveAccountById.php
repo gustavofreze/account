@@ -7,7 +7,7 @@ namespace Account\Query\Account;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TinyBlocks\Http\HttpResponse;
+use TinyBlocks\Http\Response;
 
 final readonly class RetrieveAccountById implements RequestHandlerInterface
 {
@@ -26,6 +26,6 @@ final readonly class RetrieveAccountById implements RequestHandlerInterface
             throw new AccountNotFound(id: $accountId);
         }
 
-        return HttpResponse::ok(data: $account->toArray());
+        return Response::ok(body: $account->toArray());
     }
 }

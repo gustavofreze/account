@@ -12,7 +12,7 @@ use Account\Driver\Http\Middlewares\ErrorHandling;
 use Account\RequestFactory;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
-use TinyBlocks\Http\HttpCode;
+use TinyBlocks\Http\Code;
 
 final class CreateTransactionTest extends TestCase
 {
@@ -46,7 +46,7 @@ final class CreateTransactionTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate success */
-        self::assertSame(HttpCode::NO_CONTENT->value, $actual->getStatusCode());
+        self::assertSame(Code::NO_CONTENT->value, $actual->getStatusCode());
     }
 
     public function testPurchaseWithInstallmentsTransaction(): void
@@ -65,7 +65,7 @@ final class CreateTransactionTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate success */
-        self::assertSame(HttpCode::NO_CONTENT->value, $actual->getStatusCode());
+        self::assertSame(Code::NO_CONTENT->value, $actual->getStatusCode());
     }
 
     public function testWithdrawalTransaction(): void
@@ -84,7 +84,7 @@ final class CreateTransactionTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate success */
-        self::assertSame(HttpCode::NO_CONTENT->value, $actual->getStatusCode());
+        self::assertSame(Code::NO_CONTENT->value, $actual->getStatusCode());
     }
 
     public function testCreditVoucherTransaction(): void
@@ -103,7 +103,7 @@ final class CreateTransactionTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate success */
-        self::assertSame(HttpCode::NO_CONTENT->value, $actual->getStatusCode());
+        self::assertSame(Code::NO_CONTENT->value, $actual->getStatusCode());
     }
 
     public function testExceptionWhenUnknownError(): void
@@ -122,7 +122,7 @@ final class CreateTransactionTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate an internal server error */
-        self::assertSame(HttpCode::INTERNAL_SERVER_ERROR->value, $actual->getStatusCode());
+        self::assertSame(Code::INTERNAL_SERVER_ERROR->value, $actual->getStatusCode());
 
         /** @And the response body should contain the unexpected error message */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -146,7 +146,7 @@ final class CreateTransactionTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate failure */
-        self::assertSame(HttpCode::UNPROCESSABLE_ENTITY->value, $actual->getStatusCode());
+        self::assertSame(Code::UNPROCESSABLE_ENTITY->value, $actual->getStatusCode());
 
         /** @And the response body should contain a validation error for the account_id field */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -170,7 +170,7 @@ final class CreateTransactionTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate a Not Found error */
-        self::assertSame(HttpCode::NOT_FOUND->value, $actual->getStatusCode());
+        self::assertSame(Code::NOT_FOUND->value, $actual->getStatusCode());
 
         /** @And the response body should contain a not found error message for the account ID */
         $response = json_decode($actual->getBody()->__toString(), true);
@@ -194,7 +194,7 @@ final class CreateTransactionTest extends TestCase
         $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
 
         /** @Then the response status should indicate failure */
-        self::assertSame(HttpCode::UNPROCESSABLE_ENTITY->value, $actual->getStatusCode());
+        self::assertSame(Code::UNPROCESSABLE_ENTITY->value, $actual->getStatusCode());
 
         /** @And the response body should contain a validation error for the account_id field */
         $response = json_decode($actual->getBody()->__toString(), true);

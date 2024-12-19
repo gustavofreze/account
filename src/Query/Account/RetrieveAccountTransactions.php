@@ -8,7 +8,7 @@ use Account\Query\Account\Database\TransactionFilters;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TinyBlocks\Http\HttpResponse;
+use TinyBlocks\Http\Response;
 
 final readonly class RetrieveAccountTransactions implements RequestHandlerInterface
 {
@@ -30,6 +30,6 @@ final readonly class RetrieveAccountTransactions implements RequestHandlerInterf
 
         $transactions = $this->query->transactionsOf(accountId: $accountId, filters: $filters);
 
-        return HttpResponse::ok(data: $transactions->all());
+        return Response::ok(body: $transactions->all());
     }
 }

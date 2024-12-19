@@ -23,7 +23,7 @@ use Slim\App;
 use Slim\Handlers\Strategies\RequestResponseArgs;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use TinyBlocks\EnvironmentVariable\EnvironmentVariable;
-use TinyBlocks\Http\HttpCode;
+use TinyBlocks\Http\Code;
 
 final class Routes
 {
@@ -51,7 +51,7 @@ final class Routes
     {
         $this->app->any('/', fn($request, $response) => $response
             ->withHeader('Location', EnvironmentVariable::from(name: 'SOURCE')->toString())
-            ->withStatus(HttpCode::FOUND->value));
+            ->withStatus(Code::FOUND->value));
 
         $this->app->group('/accounts', function (RouteCollectorProxyInterface $route) {
             $errorHandling = new ErrorHandling(exceptionHandler: new OpenAccountExceptionHandler());

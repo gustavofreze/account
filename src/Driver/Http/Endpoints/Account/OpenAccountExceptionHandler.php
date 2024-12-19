@@ -9,7 +9,7 @@ use Account\Driver\Http\Endpoints\ExceptionHandler;
 use Account\Driver\Http\Endpoints\InvalidRequest;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use TinyBlocks\Http\HttpResponse;
+use TinyBlocks\Http\Response;
 
 final readonly class OpenAccountExceptionHandler implements ExceptionHandler
 {
@@ -18,11 +18,9 @@ final readonly class OpenAccountExceptionHandler implements ExceptionHandler
         $error = ['error' => $exception->getMessage()];
 
         return match (get_class($exception)) {
-            InvalidRequest::class,       => HttpResponse::unprocessableEntity(
-                data: ['error' => $exception->getMessages()]
-            ),
-            AccountAlreadyExists::class, => HttpResponse::conflict(data: $error),
-            default                      => HttpResponse::internalServerError(data: $error)
+            InvalidRequest::class,       => Response::unprocessableEntity(body: ['error' => $exception->getMessages()]),
+            AccountAlreadyExists::class, => Response::conflict(body: $error),
+            default                      => Response::internalServerError(body: $error)
         };
     }
 }

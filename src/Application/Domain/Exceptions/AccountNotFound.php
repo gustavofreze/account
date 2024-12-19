@@ -12,6 +12,7 @@ final class AccountNotFound extends DomainException
     public function __construct(AccountId $id)
     {
         $template = 'Account with ID <%s> not found.';
+
         parent::__construct(message: sprintf($template, $id->toString()));
     }
 }

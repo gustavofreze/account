@@ -12,6 +12,7 @@ final class InsufficientFunds extends DomainException
     public function __construct(AccountId $accountId)
     {
         $template = 'Account with ID <%s> has insufficient funds.';
+
         parent::__construct(message: sprintf($template, $accountId->toString()));
     }
 }
