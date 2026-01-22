@@ -18,7 +18,7 @@ final readonly class RetrieveAccountBalance implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $request = new Request(request: $request);
-        $accountId = $request->accountId;
+        $accountId = $request->getAccountId();
 
         $account = $this->query->findById(accountId: $accountId);
 

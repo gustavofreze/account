@@ -13,15 +13,16 @@ use Slim\Routing\Route;
 
 final class Request
 {
-    public string $accountId {
-        get {
-            return $this->accountId;
-        }
-    }
+    private string $accountId;
 
     public function __construct(private readonly ServerRequestInterface $request)
     {
         $this->validate();
+    }
+
+    public function getAccountId(): string
+    {
+        return $this->accountId;
     }
 
     private function validate(): void
