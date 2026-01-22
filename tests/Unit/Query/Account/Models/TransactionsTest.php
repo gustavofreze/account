@@ -17,7 +17,7 @@ final class TransactionsTest extends TestCase
         $transaction = Transaction::from(data: [
             'id'              => Uuid::uuid4()->toString(),
             'amount'          => '300.00',
-            'createdAt'       => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
+            'createdAt'       => new DateTimeImmutable()->format(DateTimeInterface::ATOM),
             'accountId'       => Uuid::uuid4()->toString(),
             'operationTypeId' => 4
         ]);
@@ -52,7 +52,7 @@ final class TransactionsTest extends TestCase
         $transaction1 = Transaction::from(data: [
             'id'              => Uuid::uuid4()->toString(),
             'amount'          => '300.00',
-            'createdAt'       => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
+            'createdAt'       => new DateTimeImmutable()->format(DateTimeInterface::ATOM),
             'accountId'       => Uuid::uuid4()->toString(),
             'operationTypeId' => 4
         ]);
@@ -60,7 +60,7 @@ final class TransactionsTest extends TestCase
         $transaction2 = Transaction::from(data: [
             'id'              => Uuid::uuid4()->toString(),
             'amount'          => '-100.00',
-            'createdAt'       => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
+            'createdAt'       => new DateTimeImmutable()->format(DateTimeInterface::ATOM),
             'accountId'       => Uuid::uuid4()->toString(),
             'operationTypeId' => 3
         ]);

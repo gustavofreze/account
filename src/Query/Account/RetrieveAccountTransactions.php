@@ -20,7 +20,7 @@ final readonly class RetrieveAccountTransactions implements RequestHandlerInterf
     {
         $filters = TransactionFilters::from(data: $request->getQueryParams());
         $request = new Request(request: $request);
-        $accountId = $request->getAccountId();
+        $accountId = $request->accountId;
 
         $account = $this->query->findById(accountId: $accountId);
 

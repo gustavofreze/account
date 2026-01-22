@@ -1,9 +1,4 @@
-ifeq ($(OS),Windows_NT)
-    PWD := $(shell cd)
-else
-    PWD := $(shell pwd -L)
-endif
-
+PWD := $(CURDIR)
 ARCH := $(shell uname -m)
 PLATFORM :=
 
@@ -11,8 +6,8 @@ ifeq ($(ARCH),arm64)
     PLATFORM := --platform=linux/amd64
 endif
 
-PHP_IMAGE = gustavofreze/php:8.3
-FLYWAY_IMAGE = flyway/flyway:11.0.1
+PHP_IMAGE = gustavofreze/php:8.5-alpine
+FLYWAY_IMAGE = flyway/flyway:11.20.2
 
 APP_RUN = docker run ${PLATFORM} -u root --rm -it -v ${PWD}:/app -w /app ${PHP_IMAGE}
 APP_TEST_RUN = docker run ${PLATFORM} -u root --rm -it \
@@ -28,44 +23,55 @@ FLYWAY_RUN = docker run ${PLATFORM} --rm -v ${PWD}/config/database/mysql/migrati
 MIGRATE_DB = ${FLYWAY_RUN} -locations=filesystem:/flyway/sql -schemas=account_adm -connectRetries=15
 
 .DEFAULT_GOAL := help
-.PHONY: start stop configure test test-no-coverage review show-reports configure-test-environment migrate-database clean-database show-logs help
 
+.PHONY: start
 start: ## Start application containers
 	@docker compose up -d --build
 
+.PHONY: stop
 stop: ## Stop application containers
 	@docker compose down
 
+.PHONY: configure
 configure: ## Configure development environment
 	@${APP_RUN} composer update --optimize-autoloader
 
+.PHONY: test
 test: configure-test-environment ## Run all tests with coverage
 	@${APP_TEST_RUN} composer run tests
 
+.PHONY: test-no-coverage
 test-no-coverage: configure-test-environment ## Run all tests without coverage
 	@${APP_TEST_RUN} composer run tests-no-coverage
 
+.PHONY: review
 review: ## Run static code analysis
 	@${APP_RUN} composer review
 
+.PHONY: show-reports
 show-reports: ## Open static analysis reports (e.g., coverage, lints) in the browser
 	@sensible-browser report/coverage/coverage-html/index.html report/coverage/mutation-report.html
 
+.PHONY: configure-test-environment
 configure-test-environment: ## Configures the test environment
 	@if ! docker network inspect account-test_default > /dev/null 2>&1; then \
 		docker network create account-test_default > /dev/null 2>&1; \
 	fi
 	@docker volume create account-adm-migrations > /dev/null 2>&1
 
+.PHONY: migrate-database
 migrate-database: ## Run database migrations
 	@${MIGRATE_DB} migrate
 
+.PHONY: clean-database
 clean-database: ## Clean database
 	@${MIGRATE_DB} clean
 
+.PHONY: show-logs
 show-logs: ## Display application logs
 	@docker logs -f account
 
+.PHONY: help
 help: ## Display this help message
 	@echo "Usage: make [target]"
 	@echo ""

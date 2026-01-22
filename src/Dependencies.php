@@ -30,7 +30,7 @@ use Doctrine\DBAL\DriverManager;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger as MonoLogger;
-use PDO;
+use Pdo\Mysql;
 use TinyBlocks\EnvironmentVariable\EnvironmentVariable;
 
 use function DI\autowire;
@@ -44,7 +44,7 @@ final class Dependencies
         return [
             Logger::class               => static function () {
                 $logger = new MonoLogger(name: 'StreamLogger');
-                $formatter = (new LineFormatter(format: '%message%'))->allowInlineLineBreaks();
+                $formatter = new LineFormatter(format: '%message%')->allowInlineLineBreaks();
                 $streamHandler = new StreamHandler(stream: 'php://stdout');
                 $streamHandler->setFormatter(formatter: $formatter);
                 $logger->pushHandler(handler: $streamHandler);
@@ -60,7 +60,7 @@ final class Dependencies
                 'port'          => EnvironmentVariable::from(name: 'DATABASE_PORT')->toInteger(),
                 'dbname'        => EnvironmentVariable::from(name: 'DATABASE_NAME')->toString(),
                 'password'      => EnvironmentVariable::from(name: 'DATABASE_PASSWORD')->toString(),
-                'driverOptions' => [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8']
+                'driverOptions' => [Mysql::ATTR_INIT_COMMAND => 'SET NAMES utf8']
             ], new Configuration()),
             OpenAccount::class          => create(OpenAccount::class)->constructor(get(AccountOpeningHandler::class)),
             AccountQuery::class         => autowire(AccountQueryFacade::class),

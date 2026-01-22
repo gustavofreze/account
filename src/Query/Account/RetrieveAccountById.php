@@ -18,7 +18,7 @@ final readonly class RetrieveAccountById implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $request = new Request(request: $request);
-        $accountId = $request->getAccountId();
+        $accountId = $request->accountId;
 
         $account = $this->query->findById(accountId: $accountId);
 

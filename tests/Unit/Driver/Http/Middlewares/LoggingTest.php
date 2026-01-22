@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Account\Driver\Http\Middlewares;
 
+use Account\Driven\Shared\Logging\Logger;
 use Account\Driven\Shared\Logging\LoggerHandler;
 use Account\Driven\Shared\Logging\Obfuscator\Obfuscators;
 use Account\LoggerMock;
@@ -53,7 +54,7 @@ final class LoggingTest extends TestCase
         ]);
 
         /** @And the request handler is expected to return a successful response */
-        $response = (new ResponseFactory(statusCode: Code::NO_CONTENT->value, data: []))->build();
+        $response = new ResponseFactory(statusCode: Code::NO_CONTENT->value, data: [])->build();
         $requestHandler->method('handle')->willReturn($response);
 
         /** @When the middleware processes the request */
@@ -103,7 +104,7 @@ final class LoggingTest extends TestCase
         ]);
 
         /** @And the response has a status code indicating the provided error */
-        $response = (new ResponseFactory(statusCode: $httpCode, data: ['error' => $message]))->build();
+        $response = new ResponseFactory(statusCode: $httpCode, data: ['error' => $message])->build();
         $requestHandler->method('handle')->willReturn($response);
 
         /** @When the middleware processes the request */
@@ -139,10 +140,10 @@ final class LoggingTest extends TestCase
         $request->method('getHeaders')->willReturn(['Content-Type' => ['application/json']]);
 
         /** @And the request handler is expected to return a successful response */
-        $response = (new ResponseFactory(statusCode: Code::OK->value, data: [
+        $response = new ResponseFactory(statusCode: Code::OK->value, data: [
             'id'     => 'cb87522e-f139-4f2b-b55b-0204ef9a6f77',
             'holder' => ['document' => '761692090043414114']
-        ]))->build();
+        ])->build();
         $requestHandler->method('handle')->willReturn($response);
 
         /** @When the middleware processes the request */
@@ -187,7 +188,7 @@ final class LoggingTest extends TestCase
         $request->method('getHeaders')->willReturn(['Content-Type' => ['application/json']]);
 
         /** @And the response has a status code indicating the provided error */
-        $response = (new ResponseFactory(statusCode: $httpCode, data: ['error' => $message]))->build();
+        $response = new ResponseFactory(statusCode: $httpCode, data: ['error' => $message])->build();
         $requestHandler->method('handle')->willReturn($response);
 
         /** @When the middleware processes the request */
@@ -204,6 +205,36 @@ final class LoggingTest extends TestCase
         self::assertStringContainsString($message, $firstErrorOutputOrAt);
         self::assertStringContainsString((string)$httpCode, $firstErrorOutputOrAt);
         self::assertStringContainsString('key=http_response', $firstErrorOutputOrAt);
+    }
+
+    public function testProcessDoesNotLogErrorForSuccessfulResponse(): void
+    {
+        /** @Given a mock logger that must not receive error logs */
+        $logger = $this->createMock(Logger::class);
+        $logger->expects(self::never())->method('logError');
+        $logger->expects(self::exactly(2))->method('logInfo');
+
+        /** @And a middleware using that mock logger */
+        $middleware = new Logging(logger: $logger);
+
+        /** @And a valid HTTP request */
+        $request = $this->createMock(ServerRequestInterface::class);
+        $requestHandler = $this->createMock(RequestHandlerInterface::class);
+
+        $request->method('getMethod')->willReturn(Method::GET->value);
+        $request->method('getUri')->willReturn(new Uri('http', 'account.localhost', 80, '/health'));
+        $request->method('getHeaders')->willReturn(['Content-Type' => ['application/json']]);
+        $request->method('getParsedBody')->willReturn(null);
+
+        /** @And the handler returns a successful JSON response */
+        $response = new ResponseFactory(statusCode: Code::OK->value, data: ['ok' => true])->build();
+        $requestHandler->method('handle')->willReturn($response);
+
+        /** @When the middleware processes the request */
+        $actualResponse = $middleware->process($request, $requestHandler);
+
+        /** @Then the response is returned unchanged */
+        self::assertSame($response, $actualResponse);
     }
 
     public static function errorPostDataProvider(): array

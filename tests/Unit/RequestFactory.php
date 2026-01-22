@@ -17,7 +17,7 @@ final class RequestFactory
 
     public static function getFrom(string $path, array $parameters): ServerRequestInterface
     {
-        $uri = (new UriFactory())
+        $uri = new UriFactory()
             ->createUri()
             ->withScheme('https')
             ->withHost(self::LOCALHOST)
@@ -31,7 +31,7 @@ final class RequestFactory
 
     public static function postFrom(array $payload): ServerRequestInterface
     {
-        $uri = (new UriFactory())
+        $uri = new UriFactory()
             ->createUri()
             ->withScheme('https')
             ->withHost(self::LOCALHOST)
