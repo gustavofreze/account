@@ -11,7 +11,7 @@ use Account\Query\QueryErrorHandling;
 use Account\RequestFactory;
 use DateTimeImmutable;
 use DateTimeInterface;
-use Monolog\Test\TestCase;
+use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use TinyBlocks\Http\Code;
 
@@ -52,14 +52,14 @@ final class RetrieveAccountBalanceTest extends TestCase
             Transaction::from(data: [
                 'id'              => Uuid::uuid4()->toString(),
                 'amount'          => '300.00',
-                'createdAt'       => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
+                'createdAt'       => new DateTimeImmutable()->format(DateTimeInterface::ATOM),
                 'accountId'       => $account->id,
                 'operationTypeId' => 4
             ]),
             Transaction::from(data: [
                 'id'              => Uuid::uuid4()->toString(),
                 'amount'          => '-100.00',
-                'createdAt'       => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
+                'createdAt'       => new DateTimeImmutable()->format(DateTimeInterface::ATOM),
                 'accountId'       => $account->id,
                 'operationTypeId' => 3
             ])

@@ -45,7 +45,7 @@ final readonly class LoggerHandler implements Logger
     {
         $level = strtoupper($level);
         $context = json_encode($this->obfuscators->applyIn(data: $context), JSON_UNESCAPED_SLASHES);
-        $timestamp = (new DateTimeImmutable())->format(DateTimeInterface::ATOM);
+        $timestamp = new DateTimeImmutable()->format(DateTimeInterface::ATOM);
 
         $data = sprintf(self::LOG_TEMPLATE, $timestamp, $this->component, $level, $message, $context);
 
