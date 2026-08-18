@@ -12,23 +12,31 @@ use Psr\Container\ContainerInterface;
 
 abstract class IntegrationTestCase extends TestCase
 {
-    private static Connection $connection;
+    private static Fixtures $fixtures;
     private static ContainerInterface $container;
 
     public static function setUpBeforeClass(): void
     {
         self::$container = new Container(Dependencies::definitions());
-        self::$connection = self::$container->get(Connection::class);
+
+        /** @var Connection $connection */
+        $connection = self::$container->get(Connection::class);
+
+        self::$fixtures = Fixtures::from(connection: $connection);
     }
 
     protected function tearDown(): void
     {
-        self::$connection->executeStatement('DELETE FROM transactions');
-        self::$connection->executeStatement('DELETE FROM accounts');
+        self::$fixtures->purgeAll();
     }
 
     public function get(string $class): mixed
     {
         return self::$container->get($class);
+    }
+
+    public function fixtures(): Fixtures
+    {
+        return self::$fixtures;
     }
 }

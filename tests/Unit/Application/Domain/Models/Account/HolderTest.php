@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Account\Application\Domain\Models\Account;
+namespace Test\Unit\Application\Domain\Models\Account;
 
-use Account\Application\Domain\Exceptions\InvalidDocument;
+use Account\Application\Domain\Exceptions\DocumentFormatNotValid;
 use Account\Application\Domain\Models\Account\Documents\SimpleIdentity;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -15,10 +15,8 @@ final class HolderTest extends TestCase
     public function testExceptionWhenInvalidSimpleIdentity(string $number): void
     {
         /** @Given an invalid SimpleIdentity number is provided */
-        /** @Then an InvalidDocument exception is thrown */
-        $template = 'The value <%s> is not a valid SimpleIdentity.';
-        $this->expectException(InvalidDocument::class);
-        $this->expectExceptionMessage(sprintf($template, $number));
+        /** @Then an DocumentFormatNotValid exception is thrown */
+        $this->expectException(DocumentFormatNotValid::class);
 
         /** @When creating a new SimpleIdentity instance with an invalid value */
         SimpleIdentity::from(number: $number);

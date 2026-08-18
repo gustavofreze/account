@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Account\Application\Domain\Models\Transaction\Amounts;
+namespace Test\Unit\Application\Domain\Models\Transaction\Amounts;
 
-use Account\Application\Domain\Exceptions\NonPositiveOrZeroAmount;
+use Account\Application\Domain\Exceptions\InvalidAmount;
+use Account\Application\Domain\Models\Transaction\Amounts\PositiveOrZeroAmount;
 use PHPUnit\Framework\TestCase;
 
 final class PositiveOrZeroAmountTest extends TestCase
@@ -38,10 +39,8 @@ final class PositiveOrZeroAmountTest extends TestCase
         /** @Given a negative value */
         $value = -10.00;
 
-        /** @Then an exception of type NonPositiveOrZeroAmount should be thrown */
-        $template = 'Amount <%.2f> is invalid. Amount must be positive or zero.';
-        $this->expectException(NonPositiveOrZeroAmount::class);
-        $this->expectExceptionMessage(sprintf($template, $value));
+        /** @Then an exception of type InvalidAmount should be thrown */
+        $this->expectException(InvalidAmount::class);
 
         /** @When attempting to create a PositiveOrZeroAmount with a negative value */
         PositiveOrZeroAmount::from(value: $value);

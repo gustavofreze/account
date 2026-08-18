@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Account\Driver\Http\Endpoints\Account\Mocks;
+namespace Test\Unit\Driver\Http\Endpoints\Account;
 
 use Account\Application\Commands\OpenAccount;
-use Account\Application\Domain\Exceptions\AccountAlreadyExists;
+use Account\Application\Exceptions\AccountAlreadyExists;
 use Account\Application\Ports\Inbound\AccountOpening;
-use PHPUnit\Framework\MockObject\Generator\RuntimeException;
+use RuntimeException;
 
-final class AccountOpeningMock implements AccountOpening
+final class AccountOpeningSpy implements AccountOpening
 {
     private array $documents = [];
 
@@ -22,7 +22,7 @@ final class AccountOpeningMock implements AccountOpening
         }
 
         if (in_array($documentNumber, $this->documents, true)) {
-            throw new AccountAlreadyExists(document: $command->holder->document);
+            throw new AccountAlreadyExists();
         }
 
         $this->documents[] = $documentNumber;
