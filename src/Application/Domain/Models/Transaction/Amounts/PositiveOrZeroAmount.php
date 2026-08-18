@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace Account\Application\Domain\Models\Transaction\Amounts;
 
-use Account\Application\Domain\Exceptions\NonPositiveOrZeroAmount;
-use TinyBlocks\Math\BigDecimal;
+use Account\Application\Domain\Exceptions\InvalidAmount;
+use Account\Application\Domain\Models\Commons\Decimal;
 
-final class PositiveOrZeroAmount extends BigDecimal implements Amount
+final readonly class PositiveOrZeroAmount implements Amount
 {
+    use AmountBehavior;
+
     private function __construct(float $value)
     {
         if ($value < 0) {
-            throw new NonPositiveOrZeroAmount(value: $value, scale: self::SCALE);
+            throw new InvalidAmount(value: $value);
         }
 
-        parent::__construct(value: $value, scale: self::SCALE);
+        $this->value = Decimal::of(scale: self::SCALE, value: $value);
     }
 
     public static function from(float $value): PositiveOrZeroAmount

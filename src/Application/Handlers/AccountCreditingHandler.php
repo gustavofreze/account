@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Account\Application\Handlers;
 
 use Account\Application\Commands\CreditAccount;
-use Account\Application\Domain\Exceptions\AccountNotFound;
+use Account\Application\Exceptions\AccountNotFound;
 use Account\Application\Ports\Inbound\AccountCrediting;
 use Account\Application\Ports\Outbound\Accounts;
 
@@ -20,11 +20,14 @@ final readonly class AccountCreditingHandler implements AccountCrediting
         $id = $command->id;
         $account = $this->accounts->findById(id: $id);
 
-        if ($account === null) {
-            throw new AccountNotFound(id: $id);
+        if (is_null($account)) {
+            throw new AccountNotFound();
         }
 
-        $account = $account->credit(transaction: $command->transaction);
-        $this->accounts->applyCreditTransactionTo(account: $account);
+        $transaction = $command->transaction;
+
+        $account->credit(transaction: $transaction);
+
+        $this->accounts->credit(account: $account, transaction: $transaction);
     }
 }

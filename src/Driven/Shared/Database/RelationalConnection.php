@@ -6,21 +6,35 @@ namespace Account\Driven\Shared\Database;
 
 use Closure;
 
+/**
+ * Relational database connection for reads, writes, and transactional work.
+ */
 interface RelationalConnection
 {
     /**
-     * Get a QueryBuilder instance for building SQL queries.
+     * Issues the statement and returns the result with its affected-row count.
      *
-     * @return QueryBuilder The QueryBuilder instance.
+     * @param array<string, scalar|null> $bindings The named values bound into the statement.
+     * @throws DatabaseFailure When the statement fails at the database.
      */
-    public function with(): QueryBuilder;
+    public function execute(string $sql, array $bindings = []): Result;
 
     /**
-     * Execute a set of operations within a transaction.
+     * Returns the first row the query yields, empty when none matches.
      *
-     * @param Closure $useCase The closure containing the operations to be executed within the transaction.
-     * @return void
-     * @throws DatabaseFailure In case of a transaction failure.
+     * @param array<string, scalar|null> $bindings The named values bound into the query.
+     * @throws DatabaseFailure When the query fails at the database.
      */
-    public function inTransaction(Closure $useCase): void;
+    public function fetchOne(string $sql, array $bindings = []): Row;
+
+    /**
+     * Wraps the given work in a single transaction and returns its result. The work commits as one
+     * unit, and any failure rolls the whole unit back.
+     *
+     * @template TReturn
+     * @param Closure(RelationalConnection): TReturn $useCase The work to run inside the transaction.
+     * @return TReturn The value the work produces.
+     * @throws DatabaseFailure When the transaction fails at the database.
+     */
+    public function inTransaction(Closure $useCase): mixed;
 }

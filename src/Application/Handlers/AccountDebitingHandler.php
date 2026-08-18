@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Account\Application\Handlers;
 
 use Account\Application\Commands\DebitAccount;
-use Account\Application\Domain\Exceptions\AccountNotFound;
+use Account\Application\Exceptions\AccountNotFound;
 use Account\Application\Ports\Inbound\AccountDebiting;
 use Account\Application\Ports\Outbound\Accounts;
 
@@ -20,10 +20,10 @@ final readonly class AccountDebitingHandler implements AccountDebiting
         $id = $command->id;
         $account = $this->accounts->findById(id: $id);
 
-        if ($account === null) {
-            throw new AccountNotFound(id: $id);
+        if (is_null($account)) {
+            throw new AccountNotFound();
         }
 
-        $this->accounts->applyDebitTransactionTo(account: $account, transaction: $command->transaction);
+        $this->accounts->debit(account: $account, transaction: $command->transaction);
     }
 }

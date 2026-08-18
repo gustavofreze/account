@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Account\Driven\Account;
+namespace Account\Application\Domain\Models\Transaction;
 
+use Account\Application\Domain\Exceptions\UnsupportedOperationType;
 use Account\Application\Domain\Models\Transaction\Amounts\NegativeAmount;
 use Account\Application\Domain\Models\Transaction\Amounts\PositiveAmount;
 use Account\Application\Domain\Models\Transaction\Operations\CreditVoucher;
 use Account\Application\Domain\Models\Transaction\Operations\NormalPurchase;
 use Account\Application\Domain\Models\Transaction\Operations\PurchaseWithInstallments;
 use Account\Application\Domain\Models\Transaction\Operations\Withdrawal;
-use Account\Application\Domain\Models\Transaction\Transaction;
-use InvalidArgumentException;
 
 enum OperationType: int
 {
@@ -22,13 +21,12 @@ enum OperationType: int
 
     public static function fromDebitTransaction(Transaction $transaction): OperationType
     {
-        $type = get_class($transaction);
-        $template = 'Unsupported transaction type <%s>.';
+        $type = $transaction::class;
 
         return match ($type) {
             NormalPurchase::class           => self::NORMAL_PURCHASE,
             PurchaseWithInstallments::class => self::PURCHASE_WITH_INSTALLMENTS,
-            default                         => throw new InvalidArgumentException(message: sprintf($template, $type))
+            default                         => throw new UnsupportedOperationType(value: $type)
         };
     }
 
