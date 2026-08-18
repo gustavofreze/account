@@ -1,39 +1,89 @@
+name: account
+
 services:
   account:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
+    cpus: 1.0
     restart: unless-stopped
+    hostname: account
+    mem_limit: 512m
     container_name: account
+    stop_grace_period: 30s
     env_file:
-      - ./config/local.env
+      - path: .env.local
+        required: true
     volumes:
       - ./src:/var/www/html/src
     depends_on:
-      - account-adm
+      account-migrate:
+        condition: service_completed_successfully
 
   account-adm:
-    image: mysql:8.1
+    image: mysql:8.4
+    cpus: 1.0
     restart: unless-stopped
     hostname: account-adm
+    mem_limit: 1g
     container_name: account-adm
     environment:
-      TZ: "America/Sao_Paulo"
-      MYSQL_ROOT_PASSWORD: "root"
-    command: --default-authentication-plugin=caching_sha2_password --host-cache-size=0 --pid-file=/var/lib/mysql/mysqld.pid
+      MYSQL_DATABASE: "${DATABASE_NAME}"
+      MYSQL_ROOT_PASSWORD: "${DATABASE_PASSWORD}"
+      MYSQL_INITDB_SKIP_TZINFO: "yes"
+    command:
+      - --host-cache-size=0
+      - --pid-file=/var/lib/mysql/mysqld.pid
     ports:
       - "3307:3306"
     volumes:
-      - ./config/database/mysql:/scripts/config
+      - account-adm-data:/var/lib/mysql
+    tmpfs:
+      - /run/mysqld:uid=999,gid=999,mode=0750
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
 
-  nginx:
-    image: nginx:1-alpine
+  account-migrate:
+    image: flyway/flyway:13.3
+    cpus: 0.5
+    hostname: account-migrate
+    mem_limit: 256m
+    container_name: account-migrate
+    env_file:
+      - path: .env.local
+        required: true
+    command: ["-connectRetries=60", "migrate"]
+    volumes:
+      - ./database/migrations:/flyway/sql:ro
+    depends_on:
+      account-adm:
+        condition: service_healthy
+
+  account-web:
+    image: nginx:1.29-alpine
+    cpus: 0.5
     restart: unless-stopped
-    container_name: nginx
+    hostname: account-web
+    mem_limit: 128m
+    container_name: account-web
     ports:
       - "80:80"
     volumes:
-      - ./public:/var/www/html/public
-      - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./public:/var/www/html/public:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     depends_on:
-      - account
+      account:
+        condition: service_healthy
+
+volumes:
+  account-adm-data:
