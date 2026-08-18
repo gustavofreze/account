@@ -4,79 +4,61 @@ declare(strict_types=1);
 
 namespace Account;
 
-use Account\Driven\Shared\Logging\Logger;
 use Account\Driver\Http\Endpoints\Account\OpenAccount;
-use Account\Driver\Http\Endpoints\Account\OpenAccountExceptionHandler;
 use Account\Driver\Http\Endpoints\Transaction\CreateTransaction;
-use Account\Driver\Http\Endpoints\Transaction\CreateTransactionExceptionHandler;
-use Account\Driver\Http\Middlewares\ErrorHandling;
-use Account\Driver\Http\Middlewares\Logging;
-use Account\Query\Account\QueryAccountExceptionHandler;
-use Account\Query\Account\RetrieveAccountBalance;
-use Account\Query\Account\RetrieveAccountById;
-use Account\Query\Account\RetrieveAccountTransactions;
-use Account\Query\QueryErrorHandling;
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\ContainerInterface;
-use Psr\Container\NotFoundExceptionInterface;
+use Account\Query\Account\FindBalance\Http\FindAccountBalance;
+use Account\Query\Account\FindById\Http\FindAccountById;
+use Account\Query\Account\FindTransactions\Http\FindAccountTransactions;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Slim\App;
 use Slim\Handlers\Strategies\RequestResponseArgs;
 use Slim\Interfaces\RouteCollectorProxyInterface;
-use TinyBlocks\EnvironmentVariable\EnvironmentVariable;
 use TinyBlocks\Http\Code;
+use TinyBlocks\Http\ErrorHandler\ErrorMiddleware;
+use TinyBlocks\Http\Logging\LogMiddleware;
+use TinyBlocks\HttpHealthCheck\LivenessHandler;
+use TinyBlocks\HttpHealthCheck\ReadinessHandler;
 
-final class Routes
+final readonly class Routes
 {
-    private Logging $logging;
-
-    /**
-     * @param App<ContainerInterface> $app
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    public function __construct(private readonly App $app)
+    public function __construct(private App $app)
     {
-        $routeCollector = $this->app->getRouteCollector();
-        $routeCollector->setDefaultInvocationStrategy(new RequestResponseArgs());
+        $container = $this->app->getContainer();
 
-        $this->app->addErrorMiddleware(true, true, true);
+        $this->app->getRouteCollector()->setDefaultInvocationStrategy(new RequestResponseArgs());
+
+        $this->app->add($container->get(ErrorMiddleware::class));
+        $this->app->add($container->get(LogMiddleware::class));
         $this->app->addBodyParsingMiddleware();
-
-        /** @var Logger $logger */
-        $logger = $this->app->getContainer()->get(Logger::class);
-        $this->logging = new Logging(logger: $logger);
     }
 
     public function register(): void
     {
-        $this->app->any('/', fn($request, $response) => $response
-            ->withHeader('Location', EnvironmentVariable::from(name: 'SOURCE')->toString())
-            ->withStatus(Code::FOUND->value));
+        $container = $this->app->getContainer();
 
-        $this->app->group('/accounts', function (RouteCollectorProxyInterface $route) {
-            $errorHandling = new ErrorHandling(exceptionHandler: new OpenAccountExceptionHandler());
-            $queryErrorHandling = new QueryErrorHandling(exceptionHandler: new QueryAccountExceptionHandler());
+        /** @var AppSettings $appSettings */
+        $appSettings = $container->get(AppSettings::class);
 
-            $route->get('/{accountId}', RetrieveAccountById::class)
-                ->addMiddleware($queryErrorHandling);
+        $this->app->get('/health/liveness', LivenessHandler::class);
+        $this->app->get('/health/readiness', ReadinessHandler::class);
 
-            $route->get('/{accountId}/balance', RetrieveAccountBalance::class)
-                ->addMiddleware($queryErrorHandling);
+        $this->app->any(
+            '/',
+            fn(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface => $response
+                ->withHeader('Location', $appSettings->source)
+                ->withStatus(Code::FOUND->value)
+        );
 
-            $route->get('/{accountId}/transactions', RetrieveAccountTransactions::class)
-                ->addMiddleware($queryErrorHandling);
-
-            $route->post('', OpenAccount::class)
-                ->addMiddleware($errorHandling)
-                ->addMiddleware($this->logging);
+        $this->app->group('/accounts', function (RouteCollectorProxyInterface $accounts): void {
+            $accounts->post('', OpenAccount::class);
+            $accounts->get('/{accountId}', FindAccountById::class);
+            $accounts->get('/{accountId}/balance', FindAccountBalance::class);
+            $accounts->get('/{accountId}/transactions', FindAccountTransactions::class);
         });
 
-        $this->app->group('/transactions', function (RouteCollectorProxyInterface $route) {
-            $errorHandling = new ErrorHandling(exceptionHandler: new CreateTransactionExceptionHandler());
-
-            $route->post('', CreateTransaction::class)
-                ->addMiddleware($errorHandling)
-                ->addMiddleware($this->logging);
+        $this->app->group('/transactions', function (RouteCollectorProxyInterface $transactions): void {
+            $transactions->post('', CreateTransaction::class);
         });
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Account\Driver\Http\Endpoints\Transaction\Factories;
+namespace Account\Driver\Http\Endpoints\Transaction;
 
 use Account\Application\Commands\Command;
 use Account\Application\Commands\CreditAccount;
@@ -12,7 +12,7 @@ use Account\Application\Ports\Inbound\AccountCrediting;
 use Account\Application\Ports\Inbound\AccountDebiting;
 use Account\Application\Ports\Inbound\AccountWithdrawal;
 
-final readonly class UseCaseFactory
+final readonly class TransactionDispatcher
 {
     public function __construct(
         private AccountDebiting $accountDebiting,
@@ -21,9 +21,9 @@ final readonly class UseCaseFactory
     ) {
     }
 
-    public function handle(Command $command): void
+    public function dispatch(Command $command): void
     {
-        match (get_class($command)) {
+        match ($command::class) {
             DebitAccount::class      => $this->accountDebiting->handle(command: $command),
             CreditAccount::class     => $this->accountCrediting->handle(command: $command),
             RequestWithdrawal::class => $this->accountWithdrawal->handle(command: $command)

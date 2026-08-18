@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Account\Driver\Http\Endpoints\Transaction\Factories;
+namespace Account\Driver\Http\Endpoints\Transaction;
 
 use Account\Application\Commands\Command;
 use Account\Application\Commands\CreditAccount;
 use Account\Application\Commands\DebitAccount;
 use Account\Application\Commands\RequestWithdrawal;
+use Account\Application\Domain\Exceptions\UnsupportedOperationType;
 use Account\Application\Domain\Models\Account\AccountId;
-use Account\Driven\Account\OperationType;
-use InvalidArgumentException;
+use Account\Application\Domain\Models\Transaction\OperationType;
 
-final readonly class CommandFactory
+final readonly class TransactionCommand
 {
     public function __construct(private array $payload)
     {
@@ -24,9 +24,7 @@ final readonly class CommandFactory
         $accountId = new AccountId(value: $this->payload['account_id']);
 
         $operationTypeId = $this->payload['operation_type_id'];
-        $operationType = OperationType::tryFrom(value: $operationTypeId);
-
-        $template = 'Unsupported operation type id <%s>.';
+        $operationType = OperationType::tryFrom($operationTypeId);
 
         return match ($operationType) {
             OperationType::WITHDRAWAL                 => new RequestWithdrawal(
@@ -42,8 +40,8 @@ final readonly class CommandFactory
                 id: $accountId,
                 transaction: $operationType->toTransaction(amount: $amount)
             ),
-            default                                   => throw new InvalidArgumentException(
-                message: sprintf($template, $operationTypeId)
+            default                                   => throw new UnsupportedOperationType(
+                value: (string)$operationTypeId
             )
         };
     }
