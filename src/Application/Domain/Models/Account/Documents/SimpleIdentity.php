@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Account\Application\Domain\Models\Account\Documents;
 
-use Account\Application\Domain\Exceptions\InvalidDocument;
+use Account\Application\Domain\Exceptions\DocumentFormatNotValid;
 
 final readonly class SimpleIdentity implements Document
 {
-    private const string PATTERN = '/^\d{11,50}$/';
+    public const string PATTERN = '/^\d{11,50}$/';
 
     private function __construct(private string $number)
     {
         if (!preg_match(self::PATTERN, $number)) {
-            throw new InvalidDocument(class: self::class, value: $number);
+            throw new DocumentFormatNotValid(value: $number);
         }
     }
 

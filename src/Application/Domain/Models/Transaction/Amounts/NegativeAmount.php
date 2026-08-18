@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace Account\Application\Domain\Models\Transaction\Amounts;
 
-use TinyBlocks\Math\NegativeBigDecimal;
+use Account\Application\Domain\Models\Commons\Decimal;
 
-final class NegativeAmount extends NegativeBigDecimal implements Amount
+final readonly class NegativeAmount implements Amount
 {
-    private function __construct(public float $value)
+    use AmountBehavior;
+
+    private function __construct(float $value)
     {
-        parent::__construct(value: $value, scale: self::SCALE);
+        $this->value = Decimal::of(scale: self::SCALE, value: -abs($value));
     }
 
     public static function from(float $value): NegativeAmount
     {
-        return new NegativeAmount(value: -abs($value));
+        return new NegativeAmount(value: $value);
     }
 }

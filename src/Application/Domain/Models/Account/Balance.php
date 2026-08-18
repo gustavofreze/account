@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Account\Application\Domain\Models\Account;
 
+use Account\Application\Domain\Models\Commons\ValueObject;
+use Account\Application\Domain\Models\Commons\ValueObjectBehavior;
 use Account\Application\Domain\Models\Transaction\Amounts\Amount;
 use Account\Application\Domain\Models\Transaction\Amounts\PositiveOrZeroAmount;
-use TinyBlocks\Math\BigDecimal;
 
-final readonly class Balance
+final readonly class Balance implements ValueObject
 {
+    use ValueObjectBehavior;
+
     private function __construct(public PositiveOrZeroAmount $amount)
     {
     }
@@ -21,9 +24,8 @@ final readonly class Balance
 
     public function hasSufficientFunds(Amount $amount): bool
     {
-        $debitAmount = BigDecimal::fromFloat(value: $amount->toFloat(), scale: $amount::SCALE);
-        $updatedAmount = $this->amount->subtract(subtrahend: $debitAmount->absolute());
+        $remaining = $this->amount->toDecimal()->subtract(subtrahend: $amount->toDecimal()->absolute());
 
-        return !$updatedAmount->isNegative();
+        return !$remaining->isNegative();
     }
 }

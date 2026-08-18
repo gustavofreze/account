@@ -5,40 +5,37 @@ declare(strict_types=1);
 namespace Account\Driver\Http\Endpoints\Transaction;
 
 use Account\Application\Commands\Command;
-use Account\Driver\Http\Endpoints\InvalidRequest;
-use Account\Driver\Http\Endpoints\Transaction\Factories\CommandFactory;
-use Respect\Validation\Exceptions\NestedValidationException;
-use Respect\Validation\Validator;
+use Account\Driver\Http\InvalidRequest;
+use Respect\Validation\Exceptions\ValidationException;
+use Respect\Validation\ValidatorBuilder;
 
-final class Request
+final readonly class Request
 {
-    private CommandFactory $factory;
+    private const array TEMPLATES = [
+        'amount'            => 'Must be positive.',
+        'account_id'        => 'The value <{{input}}> is not a valid UUID.',
+        'operation_type_id' => 'Must be positive.'
+    ];
 
-    public function __construct(private readonly array $payload)
+    public function __construct(private array $payload)
     {
-        $this->validate();
-        $this->factory = new CommandFactory(payload: $this->payload);
+        try {
+            $amount = ValidatorBuilder::numericVal()->positive();
+            $accountId = ValidatorBuilder::uuid();
+            $operationTypeId = ValidatorBuilder::intType()->positive();
+
+            ValidatorBuilder::arrayType()
+                ->key('amount', $amount)
+                ->key('account_id', $accountId)
+                ->key('operation_type_id', $operationTypeId)
+                ->assert($this->payload, self::TEMPLATES);
+        } catch (ValidationException $exception) {
+            throw new InvalidRequest(messages: $exception->getMessages());
+        }
     }
 
     public function toCommand(): Command
     {
-        return $this->factory->build();
-    }
-
-    private function validate(): void
-    {
-        try {
-            $amountValidator = Validator::numericVal()->positive()->setTemplate('Must be positive.');
-            $accountIdValidator = Validator::uuid()->setTemplate('The value <{{input}}> is not a valid UUID.');
-            $operationTypeIdValidator = Validator::intType()->positive()->setTemplate('Must be positive.');
-
-            $payloadValidator = Validator::key('amount', $amountValidator)
-                ->key('account_id', $accountIdValidator)
-                ->key('operation_type_id', $operationTypeIdValidator);
-
-            $payloadValidator->assert($this->payload);
-        } catch (NestedValidationException $exception) {
-            throw new InvalidRequest(messages: $exception->getMessages());
-        }
+        return new TransactionCommand(payload: $this->payload)->build();
     }
 }

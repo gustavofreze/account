@@ -15,7 +15,9 @@
         </include>
         <exclude>
             <file>src/Routes.php</file>
+            <file>src/AppSettings.php</file>
             <file>src/Dependencies.php</file>
+            <file>src/DatabaseSettings.php</file>
         </exclude>
     </source>
 
@@ -30,19 +32,21 @@
 
     <coverage>
         <report>
-            <xml outputDirectory="report/coverage/coverage-xml"/>
-            <html outputDirectory="report/coverage/coverage-html"/>
-            <text outputFile="report/coverage.txt"/>
-            <clover outputFile="report/coverage-clover.xml"/>
+            <xml outputDirectory="reports/coverage/coverage-xml"/>
+            <html outputDirectory="reports/coverage/coverage-html"/>
+            <text outputFile="reports/coverage/coverage.txt"/>
+            <clover outputFile="reports/coverage/coverage-clover.xml"/>
         </report>
     </coverage>
 
     <logging>
-        <junit outputFile="report/coverage/junit.xml"/>
+        <junit outputFile="reports/coverage/junit.xml"/>
     </logging>
 
     <php>
+        <env name="DEBUG" value="false"/>
         <env name="APP_NAME" value="account"/>
+        <env name="SOURCE" value="https://account.test"/>
 
         <env name="DATABASE_HOST" value="account-adm-test"/>
         <env name="DATABASE_PORT" value="3306"/>

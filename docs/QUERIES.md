@@ -1,134 +1,64 @@
-* [Retrieve account balance](#retrieve_account_balance)
-* [Retrieve an account by id](#retrieve_account_by_id)
-* [Retrieve account transactions](#retrieve_account_transactions)
+* [Find account by id](#find-account-by-id)
+* [Find account balance](#find-account-balance)
+* [Find account transactions](#find-account-transactions)
 
-<div id=retrieve_account_balance></div> 
+## Find account by id
 
-## Retrieve account balance
-
-###### It is the process of retrieving an account's balance using its unique identifier.
-
-**GET** `{{account-dns}}/accounts/{{accountId}}/balance`
-
-**Request**
-
-| Parameter   |  Type  | Description                       | Constraints                     | Required |
-|:------------|:------:|:----------------------------------|:--------------------------------|:--------:|
-| `accountId` | String | Unique identifier of the account. | Must be a valid UUID version 4. |   Yes    |
-
-**Responses**
-
-- `200 OK`
-
-  **Description**: Indicates that the account balance was successfully retrieved.
-
-  **Content-Type**: application/json
-
-  **Body**:
-  ```json
-  {
-      "amount": 200.00
-  }
-  ```
-
-- `404 Not Found`
-
-  **Description**: Indicates that the specified account ID does not exist.
-
-  **Content-Type**: application/json
-
-  **Body**:
-  ```json
-  {
-      "error": "Account with ID <d6e00e91-ec4f-45b3-aa33-06696fe3983a> not found."
-  }
-  ```
-
-- `422 Unprocessable Entity`
-
-  **Description**: Indicates that one or more of the provided values are invalid.
-
-  **Content-Type**: application/json
-
-  **Body**:
-  ```json
-  {
-      "error": {
-          "accountId": "The value <dc3e4613-bd46-4c11-0000-9b741815010d> is not a valid UUID."
-      }
-  }
-  ```
-
-- `500 Internal Server Error`
-
-  **Description**: Indicates that an unexpected error occurred on the server while processing the request.
-
-  **Content-Type**: application/json
-
-  **Body**:
-    ```json
-    {
-        "error": "An internal server error occurred."
-    }
-    ```
-
-<div id=retrieve_account_by_id></div> 
-
-## Retrieve an account by id
-
-###### It is the process of retrieving an account's information using its unique identifier.
+#### Recovers the account and the document of its cardholder.
 
 **GET** `{{account-dns}}/accounts/{accountId}`
 
-**Request**
+### Request
 
-| Parameter   |  Type  | Description                       | Constraints                     | Required |
-|:------------|:------:|:----------------------------------|:--------------------------------|:--------:|
-| `accountId` | String | Unique identifier of the account. | Must be a valid UUID version 4. |   Yes    |
+**Path and query parameters**:
 
-**Responses**
+| Parameter   |  Type  | Description                       | Constraints                                                         | Required |
+|:------------|:------:|:----------------------------------|:--------------------------------------------------------------------|:--------:|
+| `accountId` | String | Unique identifier of the account. | Must be a valid UUID. E.g., `d6e00e91-ec4f-45b3-aa33-06696fe3983a`. |   Yes    |
+
+### Response
 
 - `200 OK`
 
-  **Description**: Indicates that the account was successfully found.
+  **Description**: Indicates that the account was found.
 
   **Content-Type**: application/json
 
   **Body**:
   ```json
   {
-      "id": "d6e00e91-ec4f-45b3-aa33-06696fe3983a",
       "holder": {
-          "document": "761692090043413414"
-      }
+          "document": "76169209004341414"
+      },
+      "account_id": "d6e00e91-ec4f-45b3-aa33-06696fe3983a"
   }
   ```
 
 - `404 Not Found`
 
-  **Description**: Indicates that the specified account ID does not exist.
+  **Description**: Indicates that no account holds the given identifier.
 
   **Content-Type**: application/json
 
   **Body**:
   ```json
   {
-      "error": "Account with ID <d6e00e91-ec4f-45b3-aa33-06696fe3983a> not found."
+      "code": "ACCOUNT_NOT_FOUND",
+      "message": "Account not found."
   }
   ```
 
 - `422 Unprocessable Entity`
 
-  **Description**: Indicates that one or more of the provided values are invalid.
+  **Description**: Indicates that the account identifier failed validation.
 
   **Content-Type**: application/json
 
   **Body**:
   ```json
   {
-      "error": {
-          "accountId": "The value <dc3e4613-bd46-4c11-0000-9b741815010d> is not a valid UUID."
-      }
+      "code": "INVALID_REQUEST",
+      "message": "The value <not-a-uuid> is not a valid UUID."
   }
   ```
 
@@ -141,78 +71,67 @@
   **Body**:
   ```json
   {
-      "error": "An internal server error occurred."
+      "code": "INTERNAL_ERROR",
+      "message": "An unexpected error occurred."
   }
   ```
 
-<div id=retrieve_account_transactions></div> 
+## Find account balance
 
-## Retrieve account transactions
+#### Recovers the current balance of the account, the sum of every transaction recorded against it.
 
-###### It is the process of retrieving transactions associated with a specific account using its unique identifier. Optionally, filters can be applied to narrow down the results.
+An account that never moved answers zero.
 
-**GET** `{{account-dns}}/accounts/{{accountId}}/transactions?operationTypeIds[]=1`
+**GET** `{{account-dns}}/accounts/{accountId}/balance`
 
-**Request**
+### Request
 
-| Parameter          |  Type  | Description                              | Constraints                                                                                                                                         | Required |
-|:-------------------|:------:|:-----------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------|:--------:|
-| `accountId`        | String | Unique identifier of the account.        | Must be a valid UUID version 4.                                                                                                                     |   Yes    |
-| `operationTypeIds` | Array  | An optional array of operation type IDs. | Must be a positive integer (e.g., 1 for **Normal purchase**, 2 for **Purchase with Installments**, 3 for **Withdrawal**, 4 for **Credit Voucher**). |    No    |
+**Path and query parameters**:
 
-**Responses**
+| Parameter   |  Type  | Description                       | Constraints                                                         | Required |
+|:------------|:------:|:----------------------------------|:--------------------------------------------------------------------|:--------:|
+| `accountId` | String | Unique identifier of the account. | Must be a valid UUID. E.g., `d6e00e91-ec4f-45b3-aa33-06696fe3983a`. |   Yes    |
+
+### Response
 
 - `200 OK`
 
-  **Description**: Indicates that the transactions were successfully retrieved.
-
-  **Content-Type**: application/json
-
-  **Body**:
-  ```json
-  [
-      {
-        "id": "83c26b99-c310-43ff-be3a-82c745339b0a",
-        "amount": -25.5,
-        "created_at": "2024-11-04T10:55:25-03:00",
-        "account_id": "250e71ca-1bac-4b32-822f-c786cc0129a2",
-        "operation_type_id": 3
-      },
-      {
-        "id": "84099b99-8b6b-4ccb-aade-3ccfa55a3b6f",
-        "amount": 60.0,
-        "created_at": "2024-11-04T10:42:23-03:00",
-        "account_id": "250e71ca-1bac-4b32-822f-c786cc0129a2",
-        "operation_type_id": 4
-      }
-  ]
-  ```
-
-- `404 Not Found`
-
-  **Description**: Indicates that the specified account ID does not exist.
+  **Description**: Indicates that the current balance of the account was recovered.
 
   **Content-Type**: application/json
 
   **Body**:
   ```json
   {
-      "error": "Account with ID <7d1ce6a5-98d0-4c85-a543-b8620212818c> not found."
+      "amount": 100.5
+  }
+  ```
+
+- `404 Not Found`
+
+  **Description**: Indicates that no account holds the given identifier.
+
+  **Content-Type**: application/json
+
+  **Body**:
+  ```json
+  {
+      "code": "ACCOUNT_NOT_FOUND",
+      "message": "Account not found."
   }
   ```
 
 - `422 Unprocessable Entity`
 
-  **Description**: Indicates that one or more of the provided values are invalid.
+  **Description**: Indicates that the account identifier failed validation.
 
   **Content-Type**: application/json
 
   **Body**:
   ```json
   {
-      "error": {
-          "accountId": "The value <dc3e4613-bd46-4c11-0000-9b741815010d> is not a valid UUID."
-      }
+      "code": "INVALID_REQUEST",
+      "message": "The value <not-a-uuid> is not a valid UUID."
   }
   ```
 
@@ -225,10 +144,142 @@
   **Body**:
   ```json
   {
-      "error": "An internal server error occurred."
+      "code": "INTERNAL_ERROR",
+      "message": "An unexpected error occurred."
   }
   ```
 
-<br>
+## Find account transactions
 
-> Requests and environment variables are available for import in `Postman`. You can access them [here](/docs/postman).
+#### Lists the transactions recorded against the account, most recent first.
+
+The page is a forward-only keyset cursor, so there is no page number and no total. The next cursor is carried in
+`links.next` whenever `meta.has_next` is true, and the `links.next` entry is absent otherwise.
+
+**GET** `{{account-dns}}/accounts/{accountId}/transactions`
+
+### Request
+
+**Path and query parameters**:
+
+| Parameter      |  Type   | Description                                                                  | Constraints                                                                                                                     | Required |
+|:---------------|:-------:|:-----------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------|:--------:|
+| `sort`         | String  | Deterministic ordering of the page.                                          | Sortable by `created_at` and `id`, with a leading minus marking descending. Default: `-created_at,-id`.                         |    No    |
+| `filter`       | String  | Filter over the transaction fields.                                          | Only `operation_type_id` is filterable, under the `==` and `=in=` operators, with integer values. E.g., `operation_type_id==4`. |    No    |
+| `accountId`    | String  | Unique identifier of the account.                                            | Must be a valid UUID. E.g., `d6e00e91-ec4f-45b3-aa33-06696fe3983a`.                                                             |   Yes    |
+| `page[size]`   | Integer | Items per page. E.g., `20`.                                                  | Must be between 1 and 100. Default: 20.                                                                                         |    No    |
+| `page[cursor]` | String  | Opaque forward-only cursor carried by `links.next` of the previous response. | Must be a token this endpoint issued, never a value the client builds.                                                          |    No    |
+
+### Response
+
+- `200 OK`
+
+  **Description**: Indicates that the transactions page of the account was recovered.
+
+  **Headers**:
+  | Header |  Type  | Description                                                                      | Constraints                                                                           | Required |
+  |:-------|:------:|:---------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------|:--------:|
+  | `Link` | String | RFC 8288 navigation carrying the same targets as the `links` object of the body. | Carries the `self` target always, and the `next` target when `meta.has_next` is true. |   Yes    |
+
+  **Content-Type**: application/json
+
+  **Body**:
+  ```json
+  {
+      "data": [
+          {
+              "id": "83c26b99-c310-43ff-be3a-82c745339b0a",
+              "amount": -10.0,
+              "account_id": "d6e00e91-ec4f-45b3-aa33-06696fe3983a",
+              "created_at": "2026-08-13T09:26:03.093299+00:00",
+              "operation_type_id": 1
+          }
+      ],
+      "meta": {
+          "per_page": 1,
+          "has_next": true
+      },
+      "links": {
+          "self": "/accounts/d6e00e91-ec4f-45b3-aa33-06696fe3983a/transactions?page[size]=1",
+          "next": "/accounts/d6e00e91-ec4f-45b3-aa33-06696fe3983a/transactions?page[cursor]=WyIyMDI2LTA4LTEzIDA5OjI2OjAzLjA5MzI5OSIsIjgzYzI2Yjk5LWMzMTAtNDNmZi1iZTNhLTgyYzc0NTMzOWIwYSJd&page[size]=1"
+      }
+  }
+  ```
+
+- `404 Not Found`
+
+  **Description**: Indicates that no account holds the given identifier.
+
+  **Content-Type**: application/json
+
+  **Body**:
+  ```json
+  {
+      "code": "ACCOUNT_NOT_FOUND",
+      "message": "Account not found."
+  }
+  ```
+
+- `422 Unprocessable Entity`
+
+  **Description**: Indicates that the account identifier or a query parameter failed validation.
+
+  **Content-Type**: application/json
+
+  **Body**:
+  ```json
+  {
+      "code": "INVALID_REQUEST",
+      "message": "The value <not-a-uuid> is not a valid UUID."
+  }
+  ```
+
+  or when the sort targets a field that is not sortable:
+
+  ```json
+  {
+      "code": "INVALID_REQUEST",
+      "message": "Sort field <amount> is not allowed."
+  }
+  ```
+
+  or when the filter targets a field that is not filterable:
+
+  ```json
+  {
+      "code": "INVALID_REQUEST",
+      "message": "Filter field <amount> is not allowed."
+  }
+  ```
+
+  or when the page size is above the maximum:
+
+  ```json
+  {
+      "code": "INVALID_REQUEST",
+      "message": "Page size <500> must be less than or equal to 100."
+  }
+  ```
+
+  or when the cursor cannot be decoded:
+
+  ```json
+  {
+      "code": "INVALID_REQUEST",
+      "message": "Cursor token <broken> is invalid and could not be decoded."
+  }
+  ```
+
+- `500 Internal Server Error`
+
+  **Description**: Indicates that an unexpected error occurred on the server while processing the request.
+
+  **Content-Type**: application/json
+
+  **Body**:
+  ```json
+  {
+      "code": "INTERNAL_ERROR",
+      "message": "An unexpected error occurred."
+  }
+  ```

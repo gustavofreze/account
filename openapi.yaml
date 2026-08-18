@@ -1,0 +1,649 @@
+openapi: 3.1.0
+info:
+  title: Account API
+  version: 1.0.0
+  description: >-
+    Manages cardholder accounts, the balance movements recorded against them, and the transaction ledger that backs
+    both. An account is opened for a cardholder document, every operation is recorded as a transaction whose sign comes
+    from its operation type, and the balance is the sum of the transactions of the account.
+servers:
+  - url: /
+    description: Relative to the host the service is published on.
+tags:
+  - name: Accounts
+  - name: Transactions
+  - name: Health
+paths:
+  /accounts:
+    post:
+      operationId: accountOpening
+      tags:
+        - Accounts
+      summary: Account opening
+      description: Opens an account for the cardholder identified by a document number.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountOpeningRequest'
+      responses:
+        '201':
+          description: Indicates that the account was opened and its identifier was assigned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountOpened'
+        '409':
+          description: Indicates that an account already exists for the holder document number.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: ACCOUNT_ALREADY_EXISTS
+                message: An account already exists for this holder document number.
+        '422':
+          description: Indicates that the request payload failed validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidRequest:
+                  value:
+                    code: INVALID_REQUEST
+                    message: '`.holder` must be present'
+                documentFormatNotValid:
+                  value:
+                    code: DOCUMENT_FORMAT_NOT_VALID
+                    message: The document number must contain only digits, with a length between 11 and 50.
+        '500':
+          description: Indicates that an unexpected error occurred on the server while processing the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: INTERNAL_ERROR
+                message: An unexpected error occurred.
+  /accounts/{accountId}:
+    get:
+      operationId: findAccountById
+      tags:
+        - Accounts
+      summary: Find account by id
+      description: Recovers the account and the document of its cardholder.
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Unique identifier of the account.
+          schema:
+            type: string
+            format: uuid
+            example: d6e00e91-ec4f-45b3-aa33-06696fe3983a
+      responses:
+        '200':
+          description: Indicates that the account was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          description: Indicates that no account holds the given identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: ACCOUNT_NOT_FOUND
+                message: Account not found.
+        '422':
+          description: Indicates that the account identifier failed validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: INVALID_REQUEST
+                message: The value <not-a-uuid> is not a valid UUID.
+        '500':
+          description: Indicates that an unexpected error occurred on the server while processing the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: INTERNAL_ERROR
+                message: An unexpected error occurred.
+  /accounts/{accountId}/balance:
+    get:
+      operationId: findAccountBalance
+      tags:
+        - Accounts
+      summary: Find account balance
+      description: >-
+        Recovers the current balance of the account, the sum of every transaction recorded against it. An account that
+        never moved answers zero.
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Unique identifier of the account.
+          schema:
+            type: string
+            format: uuid
+            example: d6e00e91-ec4f-45b3-aa33-06696fe3983a
+      responses:
+        '200':
+          description: Indicates that the current balance of the account was recovered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountBalance'
+        '404':
+          description: Indicates that no account holds the given identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: ACCOUNT_NOT_FOUND
+                message: Account not found.
+        '422':
+          description: Indicates that the account identifier failed validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: INVALID_REQUEST
+                message: The value <not-a-uuid> is not a valid UUID.
+        '500':
+          description: Indicates that an unexpected error occurred on the server while processing the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: INTERNAL_ERROR
+                message: An unexpected error occurred.
+  /accounts/{accountId}/transactions:
+    get:
+      operationId: findAccountTransactions
+      tags:
+        - Transactions
+      summary: Find account transactions
+      description: >-
+        Lists the transactions recorded against the account, most recent first. The page is a forward-only keyset
+        cursor, so there is no page number and no total. The next cursor is carried in links.next whenever meta.has_next
+        is true, and the links.next entry is absent otherwise.
+      parameters:
+        - name: sort
+          in: query
+          required: false
+          description: >-
+            Deterministic ordering of the page, sortable by created_at and id, with a leading minus marking descending.
+          schema:
+            type: string
+            default: '-created_at,-id'
+            example: '-created_at,-id'
+        - name: filter
+          in: query
+          required: false
+          description: >-
+            Filter over the transaction fields. Only operation_type_id is filterable, under the == and =in= operators,
+            with integer values.
+          schema:
+            type: string
+            example: 'operation_type_id==4'
+        - name: accountId
+          in: path
+          required: true
+          description: Unique identifier of the account.
+          schema:
+            type: string
+            format: uuid
+            example: d6e00e91-ec4f-45b3-aa33-06696fe3983a
+        - name: 'page[size]'
+          in: query
+          required: false
+          description: Items per page.
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+            example: 20
+        - name: 'page[cursor]'
+          in: query
+          required: false
+          description: Opaque forward-only cursor carried by links.next of the previous response.
+          schema:
+            type: string
+            example: 'WyIyMDI2LTA4LTEzIDA5OjI2OjAzLjA5MzI5OSIsIjgzYzI2Yjk5LWMzMTAtNDNmZi1iZTNhLTgyYzc0NTMzOWIwYSJd'
+      responses:
+        '200':
+          description: Indicates that the transactions page of the account was recovered.
+          headers:
+            Link:
+              required: true
+              description: RFC 8288 navigation carrying the same targets as the links object of the body.
+              schema:
+                type: string
+                example: '</accounts/d6e00e91-ec4f-45b3-aa33-06696fe3983a/transactions?page[size]=1>; rel="self", </accounts/d6e00e91-ec4f-45b3-aa33-06696fe3983a/transactions?page[cursor]=WyIyMDI2LTA4LTEzIDA5OjI2OjAzLjA5MzI5OSIsIjgzYzI2Yjk5LWMzMTAtNDNmZi1iZTNhLTgyYzc0NTMzOWIwYSJd&page[size]=1>; rel="next"'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountTransactionPage'
+        '404':
+          description: Indicates that no account holds the given identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: ACCOUNT_NOT_FOUND
+                message: Account not found.
+        '422':
+          description: Indicates that the account identifier or a query parameter failed validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                accountIdentifierNotValid:
+                  value:
+                    code: INVALID_REQUEST
+                    message: The value <not-a-uuid> is not a valid UUID.
+                sortFieldNotAllowed:
+                  value:
+                    code: INVALID_REQUEST
+                    message: Sort field <amount> is not allowed.
+                filterFieldNotAllowed:
+                  value:
+                    code: INVALID_REQUEST
+                    message: Filter field <amount> is not allowed.
+                pageSizeOutOfRange:
+                  value:
+                    code: INVALID_REQUEST
+                    message: Page size <500> must be less than or equal to 100.
+                cursorIsInvalid:
+                  value:
+                    code: INVALID_REQUEST
+                    message: Cursor token <broken> is invalid and could not be decoded.
+        '500':
+          description: Indicates that an unexpected error occurred on the server while processing the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: INTERNAL_ERROR
+                message: An unexpected error occurred.
+  /transactions:
+    post:
+      operationId: transactionCreating
+      tags:
+        - Transactions
+      summary: Transaction creating
+      description: >-
+        Records a transaction against an account and moves its balance. A normal purchase, a purchase with installments,
+        and a withdrawal are recorded as debits and stored with a negative amount. A credit voucher is recorded as a
+        credit and stored with a positive amount. The request always carries the amount as a positive number, and the
+        sign comes from the operation type.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionCreatingRequest'
+      responses:
+        '204':
+          description: Indicates that the transaction was recorded and the account balance was moved.
+        '404':
+          description: Indicates that no account holds the given identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: ACCOUNT_NOT_FOUND
+                message: Account not found.
+        '409':
+          description: Indicates that the account does not hold enough funds for the debit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: ACCOUNT_WITH_INSUFFICIENT_FUNDS
+                message: Account has insufficient funds for this transaction.
+        '422':
+          description: Indicates that the request payload failed validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidRequest:
+                  value:
+                    code: INVALID_REQUEST
+                    message: 'The value <"xxxxxx"> is not a valid UUID.'
+                unsupportedOperationType:
+                  value:
+                    code: UNSUPPORTED_OPERATION_TYPE
+                    message: The operation type is not supported.
+                invalidAmount:
+                  value:
+                    code: INVALID_AMOUNT
+                    message: The amount must be positive or zero.
+        '500':
+          description: Indicates that an unexpected error occurred on the server while processing the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: INTERNAL_ERROR
+                message: An unexpected error occurred.
+  /health/liveness:
+    get:
+      operationId: livenessCheck
+      tags:
+        - Health
+      summary: Liveness check
+      description: Reports that the process is running and able to answer requests.
+      responses:
+        '200':
+          description: Indicates that the process is alive.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LivenessStatus'
+  /health/readiness:
+    get:
+      operationId: readinessCheck
+      tags:
+        - Health
+      summary: Readiness check
+      description: >-
+        Reports that every critical dependency of the service is reachable. The probe runs one critical check against
+        the database and answers a diagnostic body instead of the standard error envelope.
+      responses:
+        '200':
+          description: Indicates that the service is ready to handle requests.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessReport'
+        '503':
+          description: >-
+            Indicates that a critical dependency is down, so the service cannot handle requests. The failing entry
+            carries a detail describing the failure, and the aggregate status reports UNAVAILABLE.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessReport'
+              example:
+                checks:
+                  - detail: 'An exception occurred in the driver: SQLSTATE[HY000] [2002] Connection refused'
+                    status: DOWN
+                    critical: true
+                    component: database
+                    duration_in_milliseconds: 2001.37
+                status: UNAVAILABLE
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code in screaming snake case.
+          example: ACCOUNT_NOT_FOUND
+        message:
+          type: string
+          description: Human readable description of the failure.
+          example: Account not found.
+    Holder:
+      type: object
+      required:
+        - document
+      properties:
+        document:
+          type: string
+          pattern: '^\d{11,50}$'
+          description: Document number identifying the cardholder.
+          example: '76169209004341414'
+    Account:
+      type: object
+      required:
+        - holder
+        - account_id
+      properties:
+        holder:
+          description: Cardholder the account belongs to.
+          $ref: '#/components/schemas/Holder'
+        account_id:
+          type: string
+          format: uuid
+          description: Unique identifier of the account.
+          example: d6e00e91-ec4f-45b3-aa33-06696fe3983a
+    AccountOpened:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier assigned to the opened account.
+          example: d6e00e91-ec4f-45b3-aa33-06696fe3983a
+    AccountBalance:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: double
+          description: Current balance of the account, the sum of every transaction recorded against it.
+          example: 100.5
+    AccountOpeningRequest:
+      type: object
+      required:
+        - holder
+      properties:
+        holder:
+          description: Cardholder the account belongs to.
+          $ref: '#/components/schemas/Holder'
+    AccountTransaction:
+      type: object
+      required:
+        - id
+        - amount
+        - account_id
+        - created_at
+        - operation_type_id
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the transaction.
+          example: 83c26b99-c310-43ff-be3a-82c745339b0a
+        amount:
+          type: number
+          format: double
+          description: Amount moved by the transaction, negative for a debit and positive for a credit.
+          example: -10.0
+        account_id:
+          type: string
+          format: uuid
+          description: Unique identifier of the account the transaction belongs to.
+          example: d6e00e91-ec4f-45b3-aa33-06696fe3983a
+        created_at:
+          type: string
+          format: date-time
+          description: Moment the transaction was recorded, in ISO 8601 UTC.
+          example: '2026-08-13T09:26:03.093299+00:00'
+        operation_type_id:
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+          description: >-
+            Kind of operation the transaction records, 1 for a normal purchase, 2 for a purchase with installments, 3
+            for a withdrawal, and 4 for a credit voucher.
+          example: 1
+    TransactionCreatingRequest:
+      type: object
+      required:
+        - amount
+        - account_id
+        - operation_type_id
+      properties:
+        amount:
+          type: number
+          format: double
+          description: Absolute amount moved by the operation, always sent as a positive number.
+          example: 123.45
+        account_id:
+          type: string
+          format: uuid
+          description: Unique identifier of the account the transaction is recorded against.
+          example: d6e00e91-ec4f-45b3-aa33-06696fe3983a
+        operation_type_id:
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+          description: >-
+            Kind of operation being recorded, 1 for a normal purchase, 2 for a purchase with installments, 3 for a
+            withdrawal, and 4 for a credit voucher.
+          example: 1
+    CursorMeta:
+      type: object
+      required:
+        - has_next
+        - per_page
+      properties:
+        has_next:
+          type: boolean
+          description: Whether a next page exists.
+          example: true
+        per_page:
+          type: integer
+          description: Items returned per page.
+          example: 1
+    CursorLinks:
+      type: object
+      required:
+        - self
+      properties:
+        next:
+          type: string
+          description: Link to the next page, present only when has_next is true.
+          example: '/accounts/d6e00e91-ec4f-45b3-aa33-06696fe3983a/transactions?page[cursor]=WyIyMDI2LTA4LTEzIDA5OjI2OjAzLjA5MzI5OSIsIjgzYzI2Yjk5LWMzMTAtNDNmZi1iZTNhLTgyYzc0NTMzOWIwYSJd&page[size]=1'
+        self:
+          type: string
+          description: Link to the current page.
+          example: '/accounts/d6e00e91-ec4f-45b3-aa33-06696fe3983a/transactions?page[size]=1'
+    AccountTransactionPage:
+      type: object
+      required:
+        - data
+        - meta
+        - links
+      properties:
+        data:
+          type: array
+          description: Transactions of the page, most recent first by default.
+          items:
+            $ref: '#/components/schemas/AccountTransaction'
+          example:
+            - id: 83c26b99-c310-43ff-be3a-82c745339b0a
+              amount: -10.0
+              account_id: d6e00e91-ec4f-45b3-aa33-06696fe3983a
+              created_at: '2026-08-13T09:26:03.093299+00:00'
+              operation_type_id: 1
+        meta:
+          description: Page size and next-page hint of the cursor page.
+          $ref: '#/components/schemas/CursorMeta'
+        links:
+          description: Navigation targets of the cursor page.
+          $ref: '#/components/schemas/CursorLinks'
+    LivenessStatus:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - UP
+          description: Result of the liveness probe.
+          example: UP
+    DependencyHealth:
+      type: object
+      required:
+        - status
+        - critical
+        - component
+        - duration_in_milliseconds
+      properties:
+        detail:
+          type: string
+          description: Description of the failure, present only when the dependency reports DOWN.
+          example: 'An exception occurred in the driver: SQLSTATE[HY000] [2002] Connection refused'
+        status:
+          type: string
+          enum:
+            - UP
+            - DOWN
+          description: Outcome of the check for this dependency.
+          example: UP
+        critical:
+          type: boolean
+          description: Whether a failure of this dependency makes the service unavailable.
+          example: true
+        component:
+          type: string
+          description: Component the check probes.
+          example: database
+        duration_in_milliseconds:
+          type: number
+          format: double
+          description: Time the check took to run, in milliseconds.
+          example: 4.59
+    ReadinessReport:
+      type: object
+      required:
+        - checks
+        - status
+      properties:
+        checks:
+          type: array
+          description: Outcome of each registered dependency check.
+          items:
+            $ref: '#/components/schemas/DependencyHealth'
+          example:
+            - status: UP
+              critical: true
+              component: database
+              duration_in_milliseconds: 4.59
+        status:
+          type: string
+          enum:
+            - HEALTHY
+            - UNAVAILABLE
+          description: Aggregate readiness derived from the registered checks.
+          example: HEALTHY

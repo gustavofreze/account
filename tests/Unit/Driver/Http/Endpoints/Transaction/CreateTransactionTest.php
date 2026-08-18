@@ -2,32 +2,37 @@
 
 declare(strict_types=1);
 
-namespace Account\Driver\Http\Endpoints\Transaction;
+namespace Test\Unit\Driver\Http\Endpoints\Transaction;
 
-use Account\Driven\Account\OperationType;
-use Account\Driver\Http\Endpoints\Transaction\Mocks\AccountCreditingMock;
-use Account\Driver\Http\Endpoints\Transaction\Mocks\AccountDebitingMock;
-use Account\Driver\Http\Endpoints\Transaction\Mocks\AccountWithdrawalMock;
-use Account\Driver\Http\Middlewares\ErrorHandling;
-use Account\RequestFactory;
+use Account\Application\Domain\Models\Transaction\OperationType;
+use Account\Driver\Http\DriverExceptionMapping;
+use Account\Driver\Http\Endpoints\Transaction\CreateTransaction;
+use Account\Driver\Http\Endpoints\Transaction\TransactionDispatcher;
+use Account\Query\Shared\Http\QueryExceptionMapping;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
+use Test\Unit\RequestFactory;
 use TinyBlocks\Http\Code;
+use TinyBlocks\Http\ErrorHandler\ErrorMiddleware;
 
 final class CreateTransactionTest extends TestCase
 {
     private CreateTransaction $endpoint;
 
-    private ErrorHandling $middleware;
+    private ErrorMiddleware $middleware;
 
     protected function setUp(): void
     {
-        $this->endpoint = new CreateTransaction(
-            accountDebiting: new AccountDebitingMock(),
-            accountCrediting: new AccountCreditingMock(),
-            accountWithdrawal: new AccountWithdrawalMock()
+        $dispatcher = new TransactionDispatcher(
+            accountDebiting: new AccountDebitingSpy(),
+            accountCrediting: new AccountCreditingSpy(),
+            accountWithdrawal: new AccountWithdrawalSpy()
         );
-        $this->middleware = new ErrorHandling(exceptionHandler: new CreateTransactionExceptionHandler());
+
+        $this->endpoint = new CreateTransaction(dispatcher: $dispatcher);
+        $this->middleware = ErrorMiddleware::create()
+            ->withMappings(new DriverExceptionMapping(), new QueryExceptionMapping())
+            ->build();
     }
 
     public function testNormalPurchaseTransaction(): void
@@ -35,7 +40,7 @@ final class CreateTransactionTest extends TestCase
         /** @Given that I have the data to create a normal purchase transaction */
         $payload = [
             'amount'            => 123.45,
-            'account_id'        => Uuid::uuid4()->toString(),
+            'account_id'        => Uuid::uuid7()->toString(),
             'operation_type_id' => OperationType::NORMAL_PURCHASE->value
         ];
 
@@ -43,7 +48,7 @@ final class CreateTransactionTest extends TestCase
         $request = RequestFactory::postFrom(payload: $payload);
 
         /** @When the request is processed by the handler */
-        $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
+        $actual = $this->middleware->process($request, $this->endpoint);
 
         /** @Then the response status should indicate success */
         self::assertSame(Code::NO_CONTENT->value, $actual->getStatusCode());
@@ -54,7 +59,7 @@ final class CreateTransactionTest extends TestCase
         /** @Given that I have the data to create a purchase with installment's transaction */
         $payload = [
             'amount'            => 200.00,
-            'account_id'        => Uuid::uuid4()->toString(),
+            'account_id'        => Uuid::uuid7()->toString(),
             'operation_type_id' => OperationType::PURCHASE_WITH_INSTALLMENTS->value
         ];
 
@@ -62,7 +67,7 @@ final class CreateTransactionTest extends TestCase
         $request = RequestFactory::postFrom(payload: $payload);
 
         /** @When the request is processed by the handler */
-        $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
+        $actual = $this->middleware->process($request, $this->endpoint);
 
         /** @Then the response status should indicate success */
         self::assertSame(Code::NO_CONTENT->value, $actual->getStatusCode());
@@ -73,7 +78,7 @@ final class CreateTransactionTest extends TestCase
         /** @Given that I have the data to create a withdrawal transaction */
         $payload = [
             'amount'            => 50.00,
-            'account_id'        => Uuid::uuid4()->toString(),
+            'account_id'        => Uuid::uuid7()->toString(),
             'operation_type_id' => OperationType::WITHDRAWAL->value
         ];
 
@@ -81,7 +86,7 @@ final class CreateTransactionTest extends TestCase
         $request = RequestFactory::postFrom(payload: $payload);
 
         /** @When the request is processed by the handler */
-        $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
+        $actual = $this->middleware->process($request, $this->endpoint);
 
         /** @Then the response status should indicate success */
         self::assertSame(Code::NO_CONTENT->value, $actual->getStatusCode());
@@ -92,7 +97,7 @@ final class CreateTransactionTest extends TestCase
         /** @Given that I have the data to create a credit voucher transaction */
         $payload = [
             'amount'            => 300.00,
-            'account_id'        => Uuid::uuid4()->toString(),
+            'account_id'        => Uuid::uuid7()->toString(),
             'operation_type_id' => OperationType::CREDIT_VOUCHER->value
         ];
 
@@ -100,7 +105,7 @@ final class CreateTransactionTest extends TestCase
         $request = RequestFactory::postFrom(payload: $payload);
 
         /** @When the request is processed by the handler */
-        $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
+        $actual = $this->middleware->process($request, $this->endpoint);
 
         /** @Then the response status should indicate success */
         self::assertSame(Code::NO_CONTENT->value, $actual->getStatusCode());
@@ -119,7 +124,7 @@ final class CreateTransactionTest extends TestCase
         $request = RequestFactory::postFrom(payload: $payload);
 
         /** @When the request is processed by the handler, and an unexpected error occurs */
-        $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
+        $actual = $this->middleware->process($request, $this->endpoint);
 
         /** @Then the response status should indicate an internal server error */
         self::assertSame(Code::INTERNAL_SERVER_ERROR->value, $actual->getStatusCode());
@@ -127,7 +132,8 @@ final class CreateTransactionTest extends TestCase
         /** @And the response body should contain the unexpected error message */
         $response = json_decode($actual->getBody()->__toString(), true);
 
-        self::assertSame('An unexpected error occurred.', $response['error']);
+        self::assertSame('INTERNAL_ERROR', $response['code']);
+        self::assertSame('An unexpected error occurred.', $response['message']);
     }
 
     public function testExceptionWhenInvalidRequest(): void
@@ -143,7 +149,7 @@ final class CreateTransactionTest extends TestCase
         $request = RequestFactory::postFrom(payload: $payload);
 
         /** @When the request is processed by the handler */
-        $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
+        $actual = $this->middleware->process($request, $this->endpoint);
 
         /** @Then the response status should indicate failure */
         self::assertSame(Code::UNPROCESSABLE_ENTITY->value, $actual->getStatusCode());
@@ -151,7 +157,8 @@ final class CreateTransactionTest extends TestCase
         /** @And the response body should contain a validation error for the account_id field */
         $response = json_decode($actual->getBody()->__toString(), true);
 
-        self::assertSame('The value <"xxxxxx"> is not a valid UUID.', $response['error']['account_id']);
+        self::assertSame('INVALID_REQUEST', $response['code']);
+        self::assertSame('The value <"xxxxxx"> is not a valid UUID.', $response['message']);
     }
 
     public function testExceptionWhenAccountNotFound(): void
@@ -167,7 +174,7 @@ final class CreateTransactionTest extends TestCase
         $request = RequestFactory::postFrom(payload: $payload);
 
         /** @When the request is processed by the handler */
-        $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
+        $actual = $this->middleware->process($request, $this->endpoint);
 
         /** @Then the response status should indicate a Not Found error */
         self::assertSame(Code::NOT_FOUND->value, $actual->getStatusCode());
@@ -175,7 +182,8 @@ final class CreateTransactionTest extends TestCase
         /** @And the response body should contain a not found error message for the account ID */
         $response = json_decode($actual->getBody()->__toString(), true);
 
-        self::assertSame('Account with ID <07072a4b-ded7-41ea-a3e0-055678cb9a7b> not found.', $response['error']);
+        self::assertSame('ACCOUNT_NOT_FOUND', $response['code']);
+        self::assertSame('Account not found.', $response['message']);
     }
 
     public function testExceptionWhenUnsupportedOperationTypeId(): void
@@ -183,7 +191,7 @@ final class CreateTransactionTest extends TestCase
         /** @Given invalid data to create a transaction */
         $payload = [
             'amount'            => 300.00,
-            'account_id'        => Uuid::uuid4()->toString(),
+            'account_id'        => Uuid::uuid7()->toString(),
             'operation_type_id' => 5
         ];
 
@@ -191,14 +199,15 @@ final class CreateTransactionTest extends TestCase
         $request = RequestFactory::postFrom(payload: $payload);
 
         /** @When the request is processed by the handler */
-        $actual = $this->middleware->process(request: $request, handler: $this->endpoint);
+        $actual = $this->middleware->process($request, $this->endpoint);
 
-        /** @Then the response status should indicate failure */
+        /** @Then the response status should indicate an unprocessable entity */
         self::assertSame(Code::UNPROCESSABLE_ENTITY->value, $actual->getStatusCode());
 
-        /** @And the response body should contain a validation error for the account_id field */
+        /** @And the response body should report the operation type as unsupported */
         $response = json_decode($actual->getBody()->__toString(), true);
 
-        self::assertSame('Unsupported operation type id <5>.', $response['error']);
+        self::assertSame('UNSUPPORTED_OPERATION_TYPE', $response['code']);
+        self::assertSame('The operation type is not supported.', $response['message']);
     }
 }

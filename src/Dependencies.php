@@ -13,63 +13,176 @@ use Account\Application\Ports\Inbound\AccountDebiting;
 use Account\Application\Ports\Inbound\AccountOpening;
 use Account\Application\Ports\Inbound\AccountWithdrawal;
 use Account\Application\Ports\Outbound\Accounts;
-use Account\Driven\Account\Repository\Adapter as AccountsAdapter;
+use Account\Driven\Account\Outbox\AccountEventPayloadSerializer;
+use Account\Driven\Account\Outbox\AccountEventTranslator;
+use Account\Driven\Account\Outbox\Event\AccountOpened;
+use Account\Driven\Account\Repository\AccountRepository;
 use Account\Driven\Shared\Database\MySql\MySqlEngine;
 use Account\Driven\Shared\Database\RelationalConnection;
-use Account\Driven\Shared\Logging\Logger;
-use Account\Driven\Shared\Logging\LoggerHandler;
-use Account\Driven\Shared\Logging\Obfuscator\Fields\SimpleIdentity;
-use Account\Driven\Shared\Logging\Obfuscator\Obfuscators;
-use Account\Driver\Http\Endpoints\Account\OpenAccount;
-use Account\Driver\Http\Endpoints\Transaction\CreateTransaction;
-use Account\Query\Account\AccountQuery;
-use Account\Query\Account\Database\Facade as AccountQueryFacade;
+use Account\Driver\Http\DriverExceptionMapping;
+use Account\Query\Account\FindBalance\AccountBalanceFinding;
+use Account\Query\Account\FindBalance\Database\AccountBalanceFindingAdapter;
+use Account\Query\Account\FindById\AccountFinding;
+use Account\Query\Account\FindById\Database\AccountFindingAdapter;
+use Account\Query\Account\FindTransactions\AccountTransactionsFinding;
+use Account\Query\Account\FindTransactions\Database\AccountTransactionsFindingAdapter;
+use Account\Query\Shared\Http\QueryExceptionMapping;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger as MonoLogger;
 use Pdo\Mysql;
-use TinyBlocks\EnvironmentVariable\EnvironmentVariable;
+use Psr\Container\ContainerInterface;
+use TinyBlocks\BuildingBlocks\Event\IntegrationEventTranslators;
+use TinyBlocks\Http\ErrorHandler\ErrorHandlingSettings;
+use TinyBlocks\Http\ErrorHandler\ErrorMiddleware;
+use TinyBlocks\Http\Logging\LogMiddleware;
+use TinyBlocks\HttpHealthCheck\DoctrineHealthCheck;
+use TinyBlocks\HttpHealthCheck\DrainMarker;
+use TinyBlocks\HttpHealthCheck\HealthChecks;
+use TinyBlocks\HttpHealthCheck\LivenessHandler;
+use TinyBlocks\HttpHealthCheck\ReadinessHandler;
+use TinyBlocks\Logger\Logger;
+use TinyBlocks\Logger\Redactions\DocumentRedaction;
+use TinyBlocks\Logger\Redactions\Rules\FullMaskRedaction;
+use TinyBlocks\Logger\StructuredLogger;
+use TinyBlocks\Mapper\Mapper;
+use TinyBlocks\Mapper\SnakeCase;
+use TinyBlocks\Mapper\Structured;
+use TinyBlocks\Outbox\DoctrineOutboxRepository;
+use TinyBlocks\Outbox\OutboxRepository;
+use TinyBlocks\Outbox\Serialization\PayloadSerializers;
 
 use function DI\autowire;
-use function DI\create;
-use function DI\get;
 
-final class Dependencies
+final readonly class Dependencies
 {
+    private const int DOCUMENT_VISIBLE_SUFFIX_LENGTH = 5;
+
     public static function definitions(): array
     {
         return [
-            Logger::class               => static function () {
-                $logger = new MonoLogger(name: 'StreamLogger');
-                $formatter = new LineFormatter(format: '%message%')->allowInlineLineBreaks();
-                $streamHandler = new StreamHandler(stream: 'php://stdout');
-                $streamHandler->setFormatter(formatter: $formatter);
-                $logger->pushHandler(handler: $streamHandler);
-                $obfuscators = Obfuscators::createFrom(elements: [new SimpleIdentity()]);
+            ...self::query(),
+            ...self::driven(),
+            ...self::driver(),
+            ...self::shared(),
+            ...self::application()
+        ];
+    }
 
-                return new LoggerHandler(logger: $logger, obfuscators: $obfuscators);
+    private static function query(): array
+    {
+        return [
+            AccountFinding::class             => autowire(AccountFindingAdapter::class),
+            AccountBalanceFinding::class     => autowire(AccountBalanceFindingAdapter::class),
+            AccountTransactionsFinding::class => autowire(AccountTransactionsFindingAdapter::class)
+        ];
+    }
+
+    private static function driven(): array
+    {
+        return [
+            Connection::class           => static function (ContainerInterface $container): Connection {
+                /** @var DatabaseSettings $settings */
+                $settings = $container->get(DatabaseSettings::class);
+
+                return DriverManager::getConnection([
+                    'driver'        => 'pdo_mysql',
+                    'host'          => $settings->host,
+                    'user'          => $settings->user,
+                    'port'          => $settings->port,
+                    'dbname'        => $settings->name,
+                    'charset'       => 'utf8mb4',
+                    'password'      => $settings->password,
+                    'driverOptions' => [
+                        Mysql::ATTR_INIT_COMMAND     => 'SET time_zone = "-03:00"',
+                        Mysql::ATTR_EMULATE_PREPARES => false
+                    ]
+                ], new Configuration());
             },
-            Accounts::class             => autowire(AccountsAdapter::class),
-            Connection::class           => static fn(): Connection => DriverManager::getConnection([
-                'driver'        => 'pdo_mysql',
-                'host'          => EnvironmentVariable::from(name: 'DATABASE_HOST')->toString(),
-                'user'          => EnvironmentVariable::from(name: 'DATABASE_USER')->toString(),
-                'port'          => EnvironmentVariable::from(name: 'DATABASE_PORT')->toInteger(),
-                'dbname'        => EnvironmentVariable::from(name: 'DATABASE_NAME')->toString(),
-                'password'      => EnvironmentVariable::from(name: 'DATABASE_PASSWORD')->toString(),
-                'driverOptions' => [Mysql::ATTR_INIT_COMMAND => 'SET NAMES utf8']
-            ], new Configuration()),
-            OpenAccount::class          => create(OpenAccount::class)->constructor(get(AccountOpeningHandler::class)),
-            AccountQuery::class         => autowire(AccountQueryFacade::class),
-            AccountOpening::class       => autowire(AccountOpeningHandler::class),
-            AccountDebiting::class      => autowire(AccountDebitingHandler::class),
-            AccountCrediting::class     => autowire(AccountCreditingHandler::class),
-            AccountWithdrawal::class    => autowire(AccountWithdrawalHandler::class),
-            CreateTransaction::class    => autowire(CreateTransaction::class),
+            Accounts::class             => autowire(AccountRepository::class),
+            OutboxRepository::class     => static function (ContainerInterface $container): OutboxRepository {
+                $mapper = Mapper::create()
+                    ->withNaming(namingStrategy: SnakeCase::create())
+                    ->withMapping(type: AccountOpened::class, mapping: Structured::create());
+
+                return new DoctrineOutboxRepository(
+                    connection: $container->get(Connection::class),
+                    serializers: PayloadSerializers::createFrom(
+                        elements: [new AccountEventPayloadSerializer(mapper: $mapper)]
+                    ),
+                    translators: IntegrationEventTranslators::createFrom(
+                        elements: [new AccountEventTranslator()]
+                    )
+                );
+            },
             RelationalConnection::class => autowire(MySqlEngine::class)
+        ];
+    }
+
+    private static function driver(): array
+    {
+        return [
+            LogMiddleware::class    => static function (ContainerInterface $container): LogMiddleware {
+                return LogMiddleware::create()
+                    ->withLogger(logger: $container->get(Logger::class))
+                    ->build();
+            },
+            ErrorMiddleware::class  => static function (ContainerInterface $container): ErrorMiddleware {
+                /** @var AppSettings $appSettings */
+                $appSettings = $container->get(AppSettings::class);
+
+                return ErrorMiddleware::create()
+                    ->withLogger(logger: $container->get(Logger::class))
+                    ->withMappings(new DriverExceptionMapping(), new QueryExceptionMapping())
+                    ->withSettings(
+                        settings: ErrorHandlingSettings::from(
+                            logErrors: true,
+                            logErrorDetails: true,
+                            displayErrorDetails: $appSettings->debug
+                        )
+                    )
+                    ->build();
+            },
+            LivenessHandler::class  => static fn(): LivenessHandler => LivenessHandler::create(),
+            ReadinessHandler::class => static function (ContainerInterface $container): ReadinessHandler {
+                $checks = HealthChecks::createFromEmpty()
+                    ->withCritical(check: DoctrineHealthCheck::from(connection: $container->get(Connection::class)));
+
+                return ReadinessHandler::from(checks: $checks, drainMarker: DrainMarker::default());
+            }
+        ];
+    }
+
+    private static function shared(): array
+    {
+        return [
+            Logger::class           => static function (ContainerInterface $container): Logger {
+                /** @var AppSettings $appSettings */
+                $appSettings = $container->get(AppSettings::class);
+
+                return StructuredLogger::create()
+                    ->withComponent(component: $appSettings->appName)
+                    ->withRedactions(
+                        FullMaskRedaction::commonSecrets(),
+                        DocumentRedaction::from(
+                            fields: ['document'],
+                            visibleSuffixLength: self::DOCUMENT_VISIBLE_SUFFIX_LENGTH
+                        )
+                    )
+                    ->build();
+            },
+            AppSettings::class      => static fn(): AppSettings => AppSettings::fromEnvironment(),
+            DatabaseSettings::class => static fn(): DatabaseSettings => DatabaseSettings::fromEnvironment()
+        ];
+    }
+
+    private static function application(): array
+    {
+        return [
+            AccountOpening::class    => autowire(AccountOpeningHandler::class),
+            AccountDebiting::class   => autowire(AccountDebitingHandler::class),
+            AccountCrediting::class  => autowire(AccountCreditingHandler::class),
+            AccountWithdrawal::class => autowire(AccountWithdrawalHandler::class)
         ];
     }
 }

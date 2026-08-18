@@ -8,22 +8,21 @@ use Account\Application\Ports\Inbound\AccountOpening;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TinyBlocks\Http\Response;
+use TinyBlocks\Http\Server\Response;
 
 final readonly class OpenAccount implements RequestHandlerInterface
 {
-    public function __construct(private AccountOpening $useCase)
+    public function __construct(private AccountOpening $accountOpening)
     {
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $payload = json_decode($request->getBody()->__toString(), true);
-        $request = new Request(payload: $payload);
-        $command = $request->toCommand();
+        $command = new Request(payload: $payload)->toCommand();
 
-        $this->useCase->handle(command: $command);
+        $this->accountOpening->handle(command: $command);
 
-        return Response::created(body: ['id' => $command->id->toString()]);
+        return Response::created(body: ['id' => $command->id->identityValue()]);
     }
 }

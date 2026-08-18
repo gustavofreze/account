@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Account\Application\Domain\Models\Transaction;
 
-use Ramsey\Uuid\Uuid;
+use Account\Application\Domain\Models\Commons\UniqueIdentifier;
 
 final readonly class TransactionId
 {
@@ -14,7 +14,7 @@ final readonly class TransactionId
 
     public static function generate(): TransactionId
     {
-        return new TransactionId(value: Uuid::uuid4()->toString());
+        return new TransactionId(value: UniqueIdentifier::generate()->toString());
     }
 
     public function toString(): string

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Account\Application\Handlers;
 
 use Account\Application\Commands\RequestWithdrawal;
-use Account\Application\Domain\Exceptions\AccountNotFound;
+use Account\Application\Exceptions\AccountNotFound;
 use Account\Application\Ports\Inbound\AccountWithdrawal;
 use Account\Application\Ports\Outbound\Accounts;
 
@@ -20,10 +20,10 @@ final readonly class AccountWithdrawalHandler implements AccountWithdrawal
         $id = $command->id;
         $account = $this->accounts->findById(id: $id);
 
-        if ($account === null) {
-            throw new AccountNotFound(id: $id);
+        if (is_null($account)) {
+            throw new AccountNotFound();
         }
 
-        $this->accounts->applyWithdrawalTransactionTo(account: $account, transaction: $command->transaction);
+        $this->accounts->withdraw(account: $account, transaction: $command->transaction);
     }
 }

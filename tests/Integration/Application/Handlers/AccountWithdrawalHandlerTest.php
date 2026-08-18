@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Test\Integration\Application\Handlers;
 
 use Account\Application\Commands\RequestWithdrawal;
-use Account\Application\Domain\Exceptions\AccountNotFound;
-use Account\Application\Domain\Exceptions\InsufficientFunds;
+use Account\Application\Domain\Exceptions\AccountWithInsufficientFunds;
 use Account\Application\Domain\Models\Account\Account;
 use Account\Application\Domain\Models\Account\AccountId;
 use Account\Application\Domain\Models\Account\Documents\SimpleIdentity;
@@ -15,17 +14,14 @@ use Account\Application\Domain\Models\Transaction\Amounts\NegativeAmount;
 use Account\Application\Domain\Models\Transaction\Amounts\PositiveAmount;
 use Account\Application\Domain\Models\Transaction\Operations\CreditVoucher;
 use Account\Application\Domain\Models\Transaction\Operations\Withdrawal;
+use Account\Application\Exceptions\AccountNotFound;
 use Account\Application\Ports\Inbound\AccountWithdrawal;
 use Account\Application\Ports\Outbound\Accounts;
-use Account\Driven\Shared\Database\RelationalConnection;
-use Test\Integration\Application\Repository;
 use Test\Integration\IntegrationTestCase;
 
 final class AccountWithdrawalHandlerTest extends IntegrationTestCase
 {
     private Accounts $accounts;
-
-    private Repository $repository;
 
     private AccountWithdrawal $handler;
 
@@ -33,7 +29,6 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
     {
         $this->handler = $this->get(class: AccountWithdrawal::class);
         $this->accounts = $this->get(class: Accounts::class);
-        $this->repository = new Repository(connection: $this->get(class: RelationalConnection::class));
     }
 
     public function testSuccessfulWithdrawal(): void
@@ -48,12 +43,11 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
         $this->accounts->save(account: $account);
 
         /** @And a credit transaction of 100.00 is applied to the account */
-        $account = $account->credit(
-            transaction: CreditVoucher::createFrom(amount: PositiveAmount::from(value: 100.00))
-        );
+        $credit = CreditVoucher::createFrom(amount: PositiveAmount::from(value: 100.00));
+        $account->credit(transaction: $credit);
 
         /** @And the transaction is recorded in the account history */
-        $this->accounts->applyCreditTransactionTo(account: $account);
+        $this->accounts->credit(account: $account, transaction: $credit);
 
         /** @And a withdrawal command is created for 50.00 */
         $command = new RequestWithdrawal(
@@ -67,16 +61,22 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
         /** @Then the account ID and holder should remain unchanged */
         $actual = $this->accounts->findById(id: $command->id);
 
-        self::assertSame($account->id->toString(), $actual->id->toString());
+        self::assertNotNull($actual);
+        self::assertSame($account->id->identityValue(), $actual->id->identityValue());
         self::assertSame($account->holder->document->getNumber(), $actual->holder->document->getNumber());
 
         /** @And the account balance should reflect a decrease of 50.00, resulting in a final balance of 50.00 */
-        $balance = $this->repository->balanceOf(id: $actual->id);
+        $balance = $this->fixtures()->balanceOf(accountId: $actual->id->identityValue());
 
-        self::assertSame(50.00, $balance->amount->toFloat());
+        self::assertSame(50.00, $balance);
+
+        /** @And every fact should reach the outbox in the order the account recorded it */
+        $eventTypes = $this->fixtures()->outboxEventTypesOf(accountId: $actual->id->identityValue());
+
+        self::assertSame(['AccountOpened', 'AccountCredited', 'AccountWithdrawn'], $eventTypes);
     }
 
-    public function testConcurrentWithdrawals(): void
+    public function testSecondWithdrawalIsRefusedWhenTheBalanceNoLongerCoversIt(): void
     {
         /** @Given an account is created with a holder */
         $account = Account::openFrom(
@@ -88,12 +88,11 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
         $this->accounts->save(account: $account);
 
         /** @And a credit transaction of 100.00 is applied */
-        $account = $account->credit(
-            transaction: CreditVoucher::createFrom(amount: PositiveAmount::from(value: 100.00))
-        );
+        $credit = CreditVoucher::createFrom(amount: PositiveAmount::from(value: 100.00));
+        $account->credit(transaction: $credit);
 
         /** @And the transaction is recorded */
-        $this->accounts->applyCreditTransactionTo(account: $account);
+        $this->accounts->credit(account: $account, transaction: $credit);
 
         /** @And a first withdrawal command for 60.00 is created */
         $firstCommand = new RequestWithdrawal(
@@ -105,9 +104,9 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
         $this->handler->handle(command: $firstCommand);
 
         /** @Then the account balance should reflect the first withdrawal */
-        $balanceAfterFirstWithdrawal = $this->repository->balanceOf(id: $account->id);
+        $balanceAfterFirstWithdrawal = $this->fixtures()->balanceOf(accountId: $account->id->identityValue());
 
-        self::assertSame(40.00, $balanceAfterFirstWithdrawal->amount->toFloat());
+        self::assertSame(40.00, $balanceAfterFirstWithdrawal);
 
         /** @And a second withdrawal command for 50.00 is created */
         $secondCommand = new RequestWithdrawal(
@@ -115,8 +114,8 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
             transaction: Withdrawal::createFrom(amount: NegativeAmount::from(value: -50.00))
         );
 
-        /** @Then an InsufficientFunds exception is expected when processing the second withdrawal */
-        $this->expectException(InsufficientFunds::class);
+        /** @Then an AccountWithInsufficientFunds exception is expected when processing the second withdrawal */
+        $this->expectException(AccountWithInsufficientFunds::class);
 
         /** @When the second withdrawal command is processed */
         $this->handler->handle(command: $secondCommand);
@@ -137,9 +136,7 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
         );
 
         /** @Then an AccountNotFound exception is expected */
-        $template = 'Account with ID <%s> not found.';
         $this->expectException(AccountNotFound::class);
-        $this->expectExceptionMessage(sprintf($template, $account->id->toString()));
 
         /** @When the handler processes the withdrawal command */
         $this->handler->handle(command: $command);
@@ -162,10 +159,8 @@ final class AccountWithdrawalHandlerTest extends IntegrationTestCase
             transaction: Withdrawal::createFrom(amount: NegativeAmount::from(value: -50.00))
         );
 
-        /** @Then an InsufficientFunds exception is expected */
-        $template = 'Account with ID <%s> has insufficient funds.';
-        $this->expectException(InsufficientFunds::class);
-        $this->expectExceptionMessage(sprintf($template, $account->id->toString()));
+        /** @Then an AccountWithInsufficientFunds exception is expected */
+        $this->expectException(AccountWithInsufficientFunds::class);
 
         /** @When the handler processes the withdrawal command */
         $this->handler->handle(command: $command);
