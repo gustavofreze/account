@@ -1,22 +1,26 @@
-* [Account opening](#account_opening)
-* [Account crediting](#account_crediting)
-* [Account debiting](#account_debiting)
-* [Account withdrawal](#account_withdrawal)
-
-<div id='account_opening'></div> 
+* [Account opening](#account-opening)
+* [Transaction creating](#transaction-creating)
 
 ## Account opening
 
-###### It is the process of creating a new account.
+#### Opens an account for the cardholder identified by a document number.
 
 **POST** `{{account-dns}}/accounts`
 
-**Request**
+### Headers
 
-| Parameter         |  Type  | Description                                   | Constraints                                         | Required |
-|:------------------|:------:|:----------------------------------------------|:----------------------------------------------------|:--------:|
-| `holder`          | Object | Account holder.                               | N/A                                                 |   Yes    |
-| `holder.document` | String | Unique document number of the account holder. | Must contain only digits, length between 11 and 50. |   Yes    |
+| Header         |  Type  | Description               | Constraints               | Required |
+|:---------------|:------:|:--------------------------|:--------------------------|:--------:|
+| `Content-Type` | String | The request content type. | Must be application/json. |   Yes    |
+
+### Request
+
+**Body parameters**:
+
+| Parameter         |  Type  | Description                                 | Constraints                                                | Required |
+|:------------------|:------:|:--------------------------------------------|:-----------------------------------------------------------|:--------:|
+| `holder`          | Object | Cardholder the account belongs to.          | Must carry the document of the cardholder.                 |   Yes    |
+| `holder.document` | String | Document number identifying the cardholder. | Must contain only digits, with a length between 11 and 50. |   Yes    |
 
 ```json
 {
@@ -26,46 +30,55 @@
 }
 ```
 
-**Responses**
+### Response
 
 - `201 Created`
 
-  **Description**: Indicates that the account was successfully created.
+  **Description**: Indicates that the account was opened and its identifier was assigned.
 
   **Content-Type**: application/json
 
   **Body**:
   ```json
   {
-      "id": "50aaf160-0e69-444b-b625-e83cc76d6fcd"
+      "id": "d6e00e91-ec4f-45b3-aa33-06696fe3983a"
   }
   ```
 
 - `409 Conflict`
 
-  **Description**: Indicates that an account with the provided document number already exists.
+  **Description**: Indicates that an account already exists for the holder document number.
 
   **Content-Type**: application/json
 
   **Body**:
   ```json
   {
-      "error": "An account with document number <76169209004341414> already exists."
+      "code": "ACCOUNT_ALREADY_EXISTS",
+      "message": "An account already exists for this holder document number."
   }
   ```
 
 - `422 Unprocessable Entity`
 
-  **Description**: Indicates that one or more of the provided values are invalid.
+  **Description**: Indicates that the request payload failed validation.
 
   **Content-Type**: application/json
 
   **Body**:
   ```json
   {
-      "error": {
-          "holder": "document must contain only digits (0-9)."
-      }
+      "code": "INVALID_REQUEST",
+      "message": "`.holder` must be present"
+  }
+  ```
+
+  or when the document number does not match the accepted format:
+
+  ```json
+  {
+      "code": "DOCUMENT_FORMAT_NOT_VALID",
+      "message": "The document number must contain only digits, with a length between 11 and 50."
   }
   ```
 
@@ -78,146 +91,110 @@
   **Body**:
   ```json
   {
-      "error": "An internal server error occurred."
+      "code": "INTERNAL_ERROR",
+      "message": "An unexpected error occurred."
   }
   ```
 
-<div id='account_crediting'></div> 
+## Transaction creating
 
-## Account crediting
+#### Records a transaction against an account and moves its balance.
 
-###### It is the process of adding funds to an existing account.
+A normal purchase, a purchase with installments, and a withdrawal are recorded as debits and stored with a negative
+amount. A credit voucher is recorded as a credit and stored with a positive amount. The request always carries the
+amount as a positive number, and the sign comes from the operation type.
 
 **POST** `{{account-dns}}/transactions`
 
-**Request**
+### Headers
 
-| Parameter           |  Type   | Description                        | Constraints                                                  | Required |
-|:--------------------|:-------:|:-----------------------------------|:-------------------------------------------------------------|:--------:|
-| `amount`            | Number  | Amount to credit to the account.   | Must be a positive decimal value.                            |   Yes    |
-| `account_id`        | String  | Unique identifier of the account.  | Must be a valid UUID version 4.                              |   Yes    |
-| `operation_type_id` | Integer | Type of operation being performed. | Must be a positive integer (e.g., 4 for **Credit voucher**). |   Yes    |
+| Header         |  Type  | Description               | Constraints               | Required |
+|:---------------|:------:|:--------------------------|:--------------------------|:--------:|
+| `Content-Type` | String | The request content type. | Must be application/json. |   Yes    |
 
-```json
-{
-    "amount": 60.00,
-    "account_id": "50aaf160-0e69-444b-b625-e83cc76d6fcd",
-    "operation_type_id": 4
-}
-```
+### Request
 
-**Responses**
+**Body parameters**:
 
-- `204 No Content`
-
-  **Description**: Indicates that the funds were successfully credited to the account.
-
-  **Content-Type**: application/json
-
-  **Body**: N/A
-
-
-- `404 Not Found`
-
-  **Description**: Indicates that the specified account ID does not exist.
-
-  **Content-Type**: application/json
-
-  **Body**:
-  ```json
-  {
-      "error": "Account with ID <50aaf160-0e69-444b-b625-e83cc76d6fcd> not found."
-  }
-  ```
-
-- `422 Unprocessable Entity`
-
-  **Description**: Indicates that one or more of the provided values are invalid.
-
-  **Content-Type**: application/json
-
-  **Body**:
-  ```json
-  {
-      "error": {
-          "amount": "must be a positive decimal."
-      }
-  }
-  ```
-
-- `500 Internal Server Error`
-
-  **Description**: Indicates that an unexpected error occurred on the server while processing the request.
-
-  **Content-Type**: application/json
-
-  **Body**:
-  ```json
-  {
-      "error": "An internal server error occurred."
-  }
-  ```
-
-<div id='account_debiting'></div> 
-
-## Account debiting
-
-###### It is the process of debiting funds from an existing account.
-
-**POST** `{{account-dns}}/transactions`
-
-**Request**
-
-| Parameter           |  Type   | Description                        | Constraints                                                                                         | Required |
-|:--------------------|:-------:|:-----------------------------------|:----------------------------------------------------------------------------------------------------|:--------:|
-| `amount`            | Number  | Amount to debit from the account.  | Must be a positive decimal value.                                                                   |   Yes    |
-| `account_id`        | String  | Unique identifier of the account.  | Must be a valid UUID version 4.                                                                     |   Yes    |
-| `operation_type_id` | Integer | Type of operation being performed. | Must be a positive integer (e.g., 1 for **Normal purchase**, 2 for **Purchase with installments**). |   Yes    |
+| Parameter           |  Type   | Description                                                           | Constraints                                                                                        | Required |
+|:--------------------|:-------:|:----------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------|:--------:|
+| `amount`            | Number  | Absolute amount moved by the operation.                               | Must be a positive number.                                                                         |   Yes    |
+| `account_id`        | String  | Unique identifier of the account the transaction is recorded against. | Must be a valid UUID.                                                                              |   Yes    |
+| `operation_type_id` | Integer | Kind of operation being recorded.                                     | One of 1 (normal purchase), 2 (purchase with installments), 3 (withdrawal), or 4 (credit voucher). |   Yes    |
 
 ```json
 {
-    "amount": 60.00,
-    "account_id": "50aaf160-0e69-444b-b625-e83cc76d6fcd",
+    "amount": 123.45,
+    "account_id": "d6e00e91-ec4f-45b3-aa33-06696fe3983a",
     "operation_type_id": 1
 }
 ```
 
-**Responses**
+### Response
 
 - `204 No Content`
 
-  **Description**: Indicates that the funds were successfully debited from the account.
+  **Description**: Indicates that the transaction was recorded and the account balance was moved.
 
-  **Content-Type**: application/json
-
-  **Body**: N/A
-
+  **Content-Type**: _(no content)_
 
 - `404 Not Found`
 
-  **Description**: Indicates that the specified account ID does not exist.
+  **Description**: Indicates that no account holds the given identifier.
 
   **Content-Type**: application/json
 
   **Body**:
   ```json
   {
-      "error": "Account with ID <50aaf160-0e69-444b-b625-e83cc76d6fcd> not found."
+      "code": "ACCOUNT_NOT_FOUND",
+      "message": "Account not found."
+  }
+  ```
+
+- `409 Conflict`
+
+  **Description**: Indicates that the account does not hold enough funds for the debit.
+
+  **Content-Type**: application/json
+
+  **Body**:
+  ```json
+  {
+      "code": "ACCOUNT_WITH_INSUFFICIENT_FUNDS",
+      "message": "Account has insufficient funds for this transaction."
   }
   ```
 
 - `422 Unprocessable Entity`
 
-  **Description**: Indicates that one or more of the provided values are invalid.
+  **Description**: Indicates that the request payload failed validation.
 
   **Content-Type**: application/json
 
   **Body**:
   ```json
   {
-      "error": {
-          "amount": "must be a positive decimal."
-      }
+      "code": "INVALID_REQUEST",
+      "message": "The value <\"xxxxxx\"> is not a valid UUID."
+  }
+  ```
+
+  or when the operation type identifier is outside the accepted set:
+
+  ```json
+  {
+      "code": "UNSUPPORTED_OPERATION_TYPE",
+      "message": "The operation type is not supported."
+  }
+  ```
+
+  or when the amount is negative:
+
+  ```json
+  {
+      "code": "INVALID_AMOUNT",
+      "message": "The amount must be positive or zero."
   }
   ```
 
@@ -230,86 +207,7 @@
   **Body**:
   ```json
   {
-      "error": "An internal server error occurred."
+      "code": "INTERNAL_ERROR",
+      "message": "An unexpected error occurred."
   }
   ```
-
-<div id='account_withdrawal'></div> 
-
-## Account withdrawal
-
-###### It is the process of withdrawing funds from an existing account.
-
-**POST** `{{account-dns}}/transactions`
-
-**Request**
-
-| Parameter           |  Type   | Description                          | Constraints                                              | Required |
-|:--------------------|:-------:|:-------------------------------------|:---------------------------------------------------------|:--------:|
-| `amount`            | Number  | Amount to withdraw from the account. | Must be a positive decimal value.                        |   Yes    |
-| `account_id`        | String  | Unique identifier of the account.    | Must be a valid UUID version 4.                          |   Yes    |
-| `operation_type_id` | Integer | Type of operation being performed.   | Must be a positive integer (e.g., 3 for **Withdrawal**). |   Yes    |
-
-```json
-{
-    "amount": 60.00,
-    "account_id": "50aaf160-0e69-444b-b625-e83cc76d6fcd",
-    "operation_type_id": 3
-}
-```
-
-**Responses**
-
-- `204 No Content`
-
-  **Description**: Indicates that the funds were successfully withdrawn from the account.
-
-  **Content-Type**: application/json
-
-  **Body**: N/A
-
-
-- `404 Not Found`
-
-  **Description**: Indicates that the specified account ID does not exist.
-
-  **Content-Type**: application/json
-
-  **Body**:
-  ```json
-  {
-      "error": "Account with ID <50aaf160-0e69-444b-b625-e83cc76d6fcd> not found."
-  }
-  ```
-
-- `422 Unprocessable Entity`
-
-  **Description**: Indicates that one or more of the provided values are invalid.
-
-  **Content-Type**: application/json
-
-  **Body**:
-  ```json
-  {
-      "error": {
-          "amount": "must be a positive decimal."
-      }
-  }
-  ```
-
-- `500 Internal Server Error`
-
-  **Description**: Indicates that an unexpected error occurred on the server while processing the request.
-
-  **Content-Type**: application/json
-
-  **Body**:
-  ```json
-  {
-      "error": "An internal server error occurred."
-  }
-  ```
-
-<br>
-
-> Requests and environment variables are available for import in `Postman`. You can access them [here](/docs/postman).
