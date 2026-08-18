@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Account\Query\Account\Models;
+namespace Account\Query\Account\FindById\ReadModel;
 
 final readonly class Account
 {
@@ -10,12 +10,9 @@ final readonly class Account
     {
     }
 
-    public static function from(array $data): Account
+    public static function from(string $id, string $document): Account
     {
-        $id = $data['id'];
-        $holder = Holder::from(data: $data);
-
-        return new Account(id: $id, holder: $holder);
+        return new Account(id: $id, holder: Holder::from(document: $document));
     }
 
     public function toArray(): array

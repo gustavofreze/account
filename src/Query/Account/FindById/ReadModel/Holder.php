@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Account\Query\Account\Models;
+namespace Account\Query\Account\FindById\ReadModel;
 
 final readonly class Holder
 {
@@ -10,9 +10,9 @@ final readonly class Holder
     {
     }
 
-    public static function from(array $data): Holder
+    public static function from(string $document): Holder
     {
-        return new Holder(document: $data['holderDocumentNumber']);
+        return new Holder(document: $document);
     }
 
     public function toArray(): array

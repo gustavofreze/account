@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Account\Query\Account\Models;
+namespace Account\Query\Account\FindBalance\ReadModel;
 
-final readonly class Balance
+final readonly class AccountBalance
 {
     private function __construct(public float $amount)
     {
     }
 
-    public static function from(array $data): Balance
+    public static function from(float $amount): AccountBalance
     {
-        return new Balance(amount: (float)$data['amount']);
+        return new AccountBalance(amount: $amount);
     }
 
     public function toArray(): array
