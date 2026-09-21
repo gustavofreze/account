@@ -201,7 +201,7 @@ The page is a forward-only keyset cursor, so there is no page number and no tota
       },
       "links": {
           "self": "/accounts/d6e00e91-ec4f-45b3-aa33-06696fe3983a/transactions?page[size]=1",
-          "next": "/accounts/d6e00e91-ec4f-45b3-aa33-06696fe3983a/transactions?page[cursor]=WyIyMDI2LTA4LTEzIDA5OjI2OjAzLjA5MzI5OSIsIjgzYzI2Yjk5LWMzMTAtNDNmZi1iZTNhLTgyYzc0NTMzOWIwYSJd&page[size]=1"
+          "next": "/accounts/d6e00e91-ec4f-45b3-aa33-06696fe3983a/transactions?page[cursor]=WyIyMDI2LTA4LTEzVDA5OjI2OjAzLjA5MzI5OSswMDowMCIsIjgzYzI2Yjk5LWMzMTAtNDNmZi1iZTNhLTgyYzc0NTMzOWIwYSJd&page[size]=1"
       }
   }
   ```
