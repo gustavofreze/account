@@ -24,7 +24,7 @@ MySQLDockerContainer::from(image: 'mysql:8.4', name: 'account-adm-test')
             $template = '%s/../database/migrations';
             $migrations = sprintf($template, __DIR__);
 
-            FlywayDockerContainer::from(image: 'flyway/flyway:13.3', name: 'account-flyway-test')
+            FlywayDockerContainer::from(image: 'flyway/flyway:13.7', name: 'account-flyway-test')
                 ->withSource(password: 'root', username: 'root', container: $mySQLStarted)
                 ->withNetwork(name: $network)
                 ->withMigrations(pathOnHost: $migrations)

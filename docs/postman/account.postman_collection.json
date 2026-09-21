@@ -27,7 +27,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://account.localhost",
+			"value": "http://account.localhost:8090",
 			"type": "string"
 		},
 		{
@@ -182,7 +182,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"status\": \"HEALTHY\",\n    \"checks\": [\n        {\n            \"component\": \"database\",\n            \"status\": \"UP\",\n            \"critical\": true,\n            \"duration_in_milliseconds\": 4.59\n        }\n    ]\n}"
+							"body": "{\n    \"checks\": [\n        {\n            \"status\": \"UP\",\n            \"critical\": true,\n            \"component\": \"database\",\n            \"duration_in_milliseconds\": 4.59\n        }\n    ],\n    \"status\": \"HEALTHY\"\n}"
 						}
 					]
 				}
@@ -585,7 +585,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"code\": \"ACCOUNT_WITH_INSUFFICIENT_FUNDS\",\n    \"message\": \"The account does not have sufficient funds for this operation.\"\n}"
+							"body": "{\n    \"code\": \"ACCOUNT_WITH_INSUFFICIENT_FUNDS\",\n    \"message\": \"Account has insufficient funds for this transaction.\"\n}"
 						}
 					]
 				}

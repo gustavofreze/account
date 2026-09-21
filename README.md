@@ -29,7 +29,7 @@ The HTTP contract is published in `openapi.yaml` at the repository root and deta
 below. To exercise it, import the [Postman collection](docs/postman/account.postman_collection.json). It covers every
 operation, and running it top to bottom against a local stack opens an account, moves money across the four operation
 types, and reads the result back. It carries its own `baseUrl`, so no environment import is needed to point it at
-`http://account.localhost`.
+`http://account.localhost:8090`.
 
 <!--suppress HtmlDeprecatedAttribute -->
 <p align="center">
@@ -134,9 +134,9 @@ make clean
 
 ### Access URLs
 
-| Environment | DNS                      |
-|:------------|:-------------------------|
-| `Local`     | http://account.localhost |
+| Environment | DNS                           |
+|:------------|:------------------------------|
+| `Local`     | http://account.localhost:8090 |
 
 ### Environment variables
 
