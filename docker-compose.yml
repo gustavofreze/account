@@ -48,7 +48,7 @@ services:
       start_period: 30s
 
   account-migrate:
-    image: flyway/flyway:13.3
+    image: flyway/flyway:13.7
     cpus: 0.5
     hostname: account-migrate
     mem_limit: 256m
@@ -64,7 +64,7 @@ services:
         condition: service_healthy
 
   account-web:
-    image: nginx:1.29-alpine
+    image: nginx:1.31-alpine
     cpus: 0.5
     restart: unless-stopped
     hostname: account-web
