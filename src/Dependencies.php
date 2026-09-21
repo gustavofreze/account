@@ -43,8 +43,8 @@ use TinyBlocks\HttpHealthCheck\LivenessHandler;
 use TinyBlocks\HttpHealthCheck\ReadinessHandler;
 use TinyBlocks\Logger\Logger;
 use TinyBlocks\Logger\Redactions\DocumentRedaction;
-use TinyBlocks\Logger\Redactions\Rules\FullMaskRedaction;
-use TinyBlocks\Logger\StructuredLogger;
+use TinyBlocks\Logger\Redactions\SecretRedaction;
+use TinyBlocks\Logger\StreamLogger;
 use TinyBlocks\Mapper\Mapper;
 use TinyBlocks\Mapper\SnakeCase;
 use TinyBlocks\Mapper\Structured;
@@ -160,10 +160,10 @@ final readonly class Dependencies
                 /** @var AppSettings $appSettings */
                 $appSettings = $container->get(AppSettings::class);
 
-                return StructuredLogger::create()
+                return StreamLogger::builder()
                     ->withComponent(component: $appSettings->appName)
                     ->withRedactions(
-                        FullMaskRedaction::commonSecrets(),
+                        SecretRedaction::default(),
                         DocumentRedaction::from(
                             fields: ['document'],
                             visibleSuffixLength: self::DOCUMENT_VISIBLE_SUFFIX_LENGTH
