@@ -27,7 +27,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://account.localhost",
+			"value": "http://account.localhost:8090",
 			"type": "string"
 		},
 		{
