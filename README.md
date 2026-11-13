@@ -1,8 +1,7 @@
 # Account
 
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-
 * [Overview](#overview)
+    - [Flow](#flow)
     - [Use cases](#use-cases)
     - [Queries](#queries)
     - [Health checks](#health-checks)
@@ -15,7 +14,6 @@
 * [Environment setup](#environment-setup)
     - [Access URLs](#access-urls)
     - [Environment variables](#environment-variables)
-* [Observability](#observability)
 
 ## Overview
 
@@ -31,12 +29,17 @@ operation, and running it top to bottom against a local stack opens an account, 
 types, and reads the result back. It carries its own `baseUrl`, so no environment import is needed to point it at
 `http://account.localhost:8090`.
 
-<!--suppress HtmlDeprecatedAttribute -->
-<p align="center">
-    <img src="./docs/excalidraw/account-flow.svg" alt="Account flow diagram" width="800">
-</p>
+### Flow
 
-<p align="center"><small>Figure 01: Account transaction flow diagram.</small></p>
+![Account communication](docs/diagrams/account-flow.svg)
+
+![Account domain events](docs/diagrams/account-events.svg)
+
+The domain events view shows the commands that raise each event and the aggregate that owns it. No consumer reacts
+to them yet.
+
+Sources: [account-flow.html](docs/diagrams/account-flow.html),
+[account-events.html](docs/diagrams/account-events.html).
 
 ### Use cases
 
@@ -72,13 +75,19 @@ To install project dependencies locally, run:
 make configure
 ```
 
+To update dependencies and normalize `composer.json`, run:
+
+```bash
+make configure-and-update
+```
+
 To start the application containers, run:
 
 ```bash
 make start
 ```
 
-To stop the application containers, run:
+To stop the application containers and drop the data volume, run:
 
 ```bash
 make stop
@@ -92,7 +101,7 @@ Run all tests with coverage and mutation testing:
 make tests
 ```
 
-Run a single test file:
+Run a specific test file without coverage:
 
 ```bash
 make test-file FILE=AccountTest
@@ -106,7 +115,7 @@ Run static code analysis:
 make review
 ```
 
-Fix static code analysis issues:
+Fix what static code analysis can correct:
 
 ```bash
 make fix-review
@@ -114,18 +123,16 @@ make fix-review
 
 ### Reports
 
-Open static analysis reports (e.g., coverage, lints) in the browser:
+Open coverage and mutation reports in the browser:
 
 ```bash
 make show-reports
 ```
 
-### Maintenance
-
-Remove dependencies and generated artifacts:
+Show outdated direct dependencies:
 
 ```bash
-make clean
+make show-outdated
 ```
 
 > You can check other available commands by running `make help`.
@@ -164,11 +171,3 @@ environment instead. The `Makefile` hands the file to Docker Compose with `--env
 | `FLYWAY_LOCATIONS`                 | Directory the migration files are read from                             | `filesystem:/flyway/sql`                                                                                        |
 | `FLYWAY_CLEAN_DISABLED`            | Blocks `flyway clean` from dropping the schema                          | `false`                                                                                                         |
 | `FLYWAY_VALIDATE_MIGRATION_NAMING` | Fails the migration run when a file name breaks the Flyway convention   | `true`                                                                                                          |
-
-## Observability
-
-The structured logger writes to standard output, so the container runtime holds the log stream. Follow it with:
-
-```bash
-docker logs -f account
-```
