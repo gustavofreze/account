@@ -12,6 +12,7 @@ use Doctrine\DBAL\Connection;
 use Test\Integration\AccountRequests;
 use Test\Integration\IntegrationTestCase;
 use TinyBlocks\Http\Code;
+use TinyBlocks\HttpQuery\Exceptions\CursorIsInvalid;
 
 final class FindAccountTransactionsTest extends IntegrationTestCase
 {
@@ -22,6 +23,8 @@ final class FindAccountTransactionsTest extends IntegrationTestCase
     private const string OTHER_ACCOUNT_ID = '0198bfc0-1111-7000-8000-ddddeeeeffff';
     private const string HOLDER_DOCUMENT = '56005551000100';
     private const string TRANSACTIONS_PATH = '/accounts/%s/transactions?%s';
+    private const string FORGED_ID_CURSOR = 'WyIyMDI2LTA4LTExVDEwOjAwOjAwLjAwMDAwMCswMDowMCIsIm5vdC1hLXV1aWQiXQ';
+    private const string FORGED_INSTANT_CURSOR = 'WyJub3ciLCIwMTk4YmZjMC0yMjIyLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEiXQ';
     private const string UNKNOWN_ACCOUNT_ID = '0198bfc0-9999-7000-8000-ffffffffffff';
     private const string OTHER_HOLDER_DOCUMENT = '56005551000199';
 
@@ -258,6 +261,40 @@ final class FindAccountTransactionsTest extends IntegrationTestCase
 
         /** @Then the account is not found */
         $this->expectException(AccountNotFound::class);
+
+        /** @When the transactions are listed */
+        $this->endpoint->handle(request: $request);
+    }
+
+    public function testFindAllWithACursorForgingTheIdentifierThenTheCursorIsInvalid(): void
+    {
+        /** @Given a registered account */
+        $this->fixtures()->insertAccount(id: self::ACCOUNT_ID, document: self::HOLDER_DOCUMENT);
+
+        /** @And a request carrying a cursor whose identifier is not a UUID */
+        $query = sprintf('page[cursor]=%s', self::FORGED_ID_CURSOR);
+        $path = sprintf(self::TRANSACTIONS_PATH, self::ACCOUNT_ID, $query);
+        $request = AccountRequests::get(path: $path, accountId: self::ACCOUNT_ID);
+
+        /** @Then the cursor is rejected before reaching the store */
+        $this->expectException(CursorIsInvalid::class);
+
+        /** @When the transactions are listed */
+        $this->endpoint->handle(request: $request);
+    }
+
+    public function testFindAllWithACursorForgingTheCreationInstantThenTheCursorIsInvalid(): void
+    {
+        /** @Given a registered account */
+        $this->fixtures()->insertAccount(id: self::ACCOUNT_ID, document: self::HOLDER_DOCUMENT);
+
+        /** @And a request carrying a cursor whose creation instant is not an ISO 8601 date-time */
+        $query = sprintf('page[cursor]=%s', self::FORGED_INSTANT_CURSOR);
+        $path = sprintf(self::TRANSACTIONS_PATH, self::ACCOUNT_ID, $query);
+        $request = AccountRequests::get(path: $path, accountId: self::ACCOUNT_ID);
+
+        /** @Then the cursor is rejected before reaching the store */
+        $this->expectException(CursorIsInvalid::class);
 
         /** @When the transactions are listed */
         $this->endpoint->handle(request: $request);

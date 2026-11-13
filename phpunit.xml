@@ -48,7 +48,6 @@
         <env name="APP_NAME" value="account"/>
         <env name="SOURCE" value="https://account.test"/>
 
-        <env name="DATABASE_HOST" value="account-adm-test"/>
         <env name="DATABASE_PORT" value="3306"/>
         <env name="DATABASE_NAME" value="account_adm_test"/>
         <env name="DATABASE_USER" value="root"/>

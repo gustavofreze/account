@@ -23,6 +23,8 @@ final readonly class FindAccountTransactionsRequest
     {
         $schema = Schema::create()
             ->sortable(fields: ['created_at', 'id'])
+            ->cursorKey(field: 'created_at', valueKind: ValueKind::DATETIME)
+            ->cursorKey(field: 'id', valueKind: ValueKind::UUID)
             ->filterable(
                 field: 'operation_type_id',
                 operators: [Operator::EQUAL, Operator::IN],
