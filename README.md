@@ -18,10 +18,10 @@
 ## Overview
 
 Each cardholder (holder) has an account with their information. For each operation performed, a transaction is created
-and associated with the respective account. Transactions have specific types, e.g., **Normal Purchase**, **Purchase with
-installments**, **Withdrawal**, and **Credit Voucher**. **Normal Purchase** and **Withdrawal** transactions are recorded
-with **negative** values, while **Credit Voucher**
-transactions are recorded with **positive** values.
+and associated with the respective account. Transactions have specific types, e.g., **Normal Purchase**,
+**Purchase with installments**, **Withdrawal**, and **Credit Voucher**. **Normal Purchase** and **Withdrawal**
+transactions are recorded with **negative** values, while **Credit Voucher** transactions are recorded with **positive**
+values.
 
 The HTTP contract is published in `openapi.yaml` at the repository root and detailed in the documentation pages linked
 below. To exercise it, import the [Postman collection](docs/postman/account.postman_collection.json). It covers every
